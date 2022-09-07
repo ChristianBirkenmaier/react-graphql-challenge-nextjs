@@ -13,8 +13,8 @@ export const QUERY_REPOSITORY = gql`
     }
   }
 `;
-export const QUERY_REPOSITORY_ISSUES = gql`
-  query Repository_Issues(
+export const QUERY_ISSUES = gql`
+  query Issues(
     $name: String!
     $owner: String!
     $first: Int!
@@ -33,13 +33,8 @@ export const QUERY_REPOSITORY_ISSUES = gql`
   }
 `;
 
-export const QUERY_REPOSITORY_ISSUES_COMMENTS = gql`
-  query Repository_Issues_Comments(
-    $name: String!
-    $owner: String!
-    $first: Int!
-    $number: Int!
-  ) {
+export const QUERY_COMMENTS = gql`
+  query Comments($name: String!, $owner: String!, $first: Int!, $number: Int!) {
     repository(name: $name, owner: $owner) {
       issue(number: $number) {
         body

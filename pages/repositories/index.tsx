@@ -19,11 +19,8 @@ import { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
-import {
-  IssueState,
-  useRepository_IssuesLazyQuery,
-} from "../../generated/graphql";
+import { useEffect, useState } from "react";
+import { IssueState, useIssuesLazyQuery } from "../../generated/graphql";
 
 type Issue = {
   __typename?: "Issue" | undefined;
@@ -43,10 +40,13 @@ const RepositoryPage: NextPage = () => {
   const name = router.query.name as string;
   const owner = router.query.owner as string;
 
-  const [loadRepositoryData, { data, error, loading }] =
-    useRepository_IssuesLazyQuery({
-      variables: { name, owner, first, states },
-    });
+  const [loadIssueData, { data, error, loading }] = useIssuesLazyQuery();
+
+  useEffect(() => {
+    if (data) return;
+    if (!first || !states || !name || !owner) return;
+    loadIssueData({ variables: { first, name, owner, states } });
+  }, [loadIssueData, first, name, owner, states, data]);
 
   const filterFunc = (issue: Issue) => {
     if (!search) return true;
@@ -56,7 +56,7 @@ const RepositoryPage: NextPage = () => {
   };
 
   const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
-    loadRepositoryData({ variables: { name, first, owner, states } });
+    loadIssueData({ variables: { name, first, owner, states } });
   };
 
   const Data = () => {
