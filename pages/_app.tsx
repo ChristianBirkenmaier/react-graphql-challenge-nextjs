@@ -10,7 +10,13 @@ import { GRAPHQL_URI } from "../config/constants";
 import { setContext } from "@apollo/client/link/context";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ChakraProvider } from "@chakra-ui/react";
+import {
+  Button,
+  ChakraProvider,
+  FormControl,
+  Grid,
+  Input,
+} from "@chakra-ui/react";
 import theme from "../styles/theme";
 
 const createClient = (token: string) => {
@@ -39,22 +45,57 @@ const createClient = (token: string) => {
 function MyApp({ Component, pageProps }: AppProps) {
   const [token, setToken] = useState<string | undefined>(undefined);
   const [isSubmitted, setSubmitted] = useState<boolean>(false);
+  const [hasLookedForItem, setHasLookedForItem] = useState(false);
   useEffect(() => {
     const token = localStorage.getItem("github_token");
+    setHasLookedForItem(true);
     if (!token) return;
     setToken(token);
     setSubmitted(true);
   }, []);
-  if (!isSubmitted) {
-    return (
-      <div>
-        <input
+  if (!hasLookedForItem) return null;
+
+  return (
+    <ChakraProvider theme={theme}>
+      {!token || (token && !isSubmitted) ? (
+        <GetCredentials
+          setSubmitted={setSubmitted}
+          setToken={setToken}
+          token={token}
+        />
+      ) : (
+        <ApolloProvider client={createClient(token!)}>
+          <header>
+            <div>
+              <Link href="/">Dashboard</Link>
+            </div>
+          </header>
+          <Component {...pageProps} />
+        </ApolloProvider>
+      )}
+    </ChakraProvider>
+  );
+}
+
+function GetCredentials({
+  setToken,
+  setSubmitted,
+  token,
+}: {
+  setToken: any;
+  setSubmitted: any;
+  token: string | undefined;
+}) {
+  return (
+    <Grid>
+      <FormControl>
+        <Input
           type="text"
           placeholder="Enter github token"
           value={token}
           onChange={(e) => setToken(e.target.value)}
         />
-        <button
+        <Button
           disabled={!token}
           onClick={() => {
             localStorage.setItem("github_token", token!);
@@ -62,22 +103,9 @@ function MyApp({ Component, pageProps }: AppProps) {
           }}
         >
           Submit
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <ApolloProvider client={createClient(token!)}>
-      <ChakraProvider theme={theme}>
-        <header>
-          <div>
-            <Link href="/">Dashboard</Link>
-          </div>
-        </header>
-        <Component {...pageProps} />
-      </ChakraProvider>
-    </ApolloProvider>
+        </Button>
+      </FormControl>
+    </Grid>
   );
 }
 
