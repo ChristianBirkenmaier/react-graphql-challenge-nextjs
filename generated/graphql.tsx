@@ -25825,14 +25825,22 @@ export type WorkflowRunPendingDeploymentRequestsArgs = {
 export type RepositoryQueryVariables = Exact<{
   name: Scalars['String'];
   owner: Scalars['String'];
+}>;
+
+
+export type RepositoryQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', name: string, owner: { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string }, issues: { __typename?: 'IssueConnection', totalCount: number } } | null };
+
+export type Repository_IssuesQueryVariables = Exact<{
+  name: Scalars['String'];
+  owner: Scalars['String'];
   first: Scalars['Int'];
   states?: InputMaybe<Array<IssueState> | IssueState>;
 }>;
 
 
-export type RepositoryQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issues: { __typename?: 'IssueConnection', totalCount: number, nodes?: Array<{ __typename?: 'Issue', body: string, title: string, number: number } | null> | null } } | null };
+export type Repository_IssuesQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issues: { __typename?: 'IssueConnection', totalCount: number, nodes?: Array<{ __typename?: 'Issue', body: string, title: string, number: number } | null> | null } } | null };
 
-export type RepositoryCommentsQueryVariables = Exact<{
+export type Repository_Issues_CommentsQueryVariables = Exact<{
   name: Scalars['String'];
   owner: Scalars['String'];
   first: Scalars['Int'];
@@ -25840,19 +25848,18 @@ export type RepositoryCommentsQueryVariables = Exact<{
 }>;
 
 
-export type RepositoryCommentsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issue?: { __typename?: 'Issue', body: string, id: string, title: string, number: number, comments: { __typename?: 'IssueCommentConnection', nodes?: Array<{ __typename?: 'IssueComment', id: string, body: string } | null> | null } } | null } | null };
+export type Repository_Issues_CommentsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issue?: { __typename?: 'Issue', body: string, id: string, title: string, number: number, comments: { __typename?: 'IssueCommentConnection', nodes?: Array<{ __typename?: 'IssueComment', id: string, body: string } | null> | null } } | null } | null };
 
 
 export const RepositoryDocument = gql`
-    query Repository($name: String!, $owner: String!, $first: Int!, $states: [IssueState!]) {
+    query Repository($name: String!, $owner: String!) {
   repository(name: $name, owner: $owner) {
-    issues(first: $first, states: $states) {
+    name
+    owner {
+      login
+    }
+    issues {
       totalCount
-      nodes {
-        body
-        title
-        number
-      }
     }
   }
 }
@@ -25872,8 +25879,6 @@ export const RepositoryDocument = gql`
  *   variables: {
  *      name: // value for 'name'
  *      owner: // value for 'owner'
- *      first: // value for 'first'
- *      states: // value for 'states'
  *   },
  * });
  */
@@ -25888,8 +25893,53 @@ export function useRepositoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type RepositoryQueryHookResult = ReturnType<typeof useRepositoryQuery>;
 export type RepositoryLazyQueryHookResult = ReturnType<typeof useRepositoryLazyQuery>;
 export type RepositoryQueryResult = Apollo.QueryResult<RepositoryQuery, RepositoryQueryVariables>;
-export const RepositoryCommentsDocument = gql`
-    query RepositoryComments($name: String!, $owner: String!, $first: Int!, $number: Int!) {
+export const Repository_IssuesDocument = gql`
+    query Repository_Issues($name: String!, $owner: String!, $first: Int!, $states: [IssueState!]) {
+  repository(name: $name, owner: $owner) {
+    issues(first: $first, states: $states) {
+      totalCount
+      nodes {
+        body
+        title
+        number
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useRepository_IssuesQuery__
+ *
+ * To run a query within a React component, call `useRepository_IssuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRepository_IssuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRepository_IssuesQuery({
+ *   variables: {
+ *      name: // value for 'name'
+ *      owner: // value for 'owner'
+ *      first: // value for 'first'
+ *      states: // value for 'states'
+ *   },
+ * });
+ */
+export function useRepository_IssuesQuery(baseOptions: Apollo.QueryHookOptions<Repository_IssuesQuery, Repository_IssuesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<Repository_IssuesQuery, Repository_IssuesQueryVariables>(Repository_IssuesDocument, options);
+      }
+export function useRepository_IssuesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Repository_IssuesQuery, Repository_IssuesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<Repository_IssuesQuery, Repository_IssuesQueryVariables>(Repository_IssuesDocument, options);
+        }
+export type Repository_IssuesQueryHookResult = ReturnType<typeof useRepository_IssuesQuery>;
+export type Repository_IssuesLazyQueryHookResult = ReturnType<typeof useRepository_IssuesLazyQuery>;
+export type Repository_IssuesQueryResult = Apollo.QueryResult<Repository_IssuesQuery, Repository_IssuesQueryVariables>;
+export const Repository_Issues_CommentsDocument = gql`
+    query Repository_Issues_Comments($name: String!, $owner: String!, $first: Int!, $number: Int!) {
   repository(name: $name, owner: $owner) {
     issue(number: $number) {
       body
@@ -25908,16 +25958,16 @@ export const RepositoryCommentsDocument = gql`
     `;
 
 /**
- * __useRepositoryCommentsQuery__
+ * __useRepository_Issues_CommentsQuery__
  *
- * To run a query within a React component, call `useRepositoryCommentsQuery` and pass it any options that fit your needs.
- * When your component renders, `useRepositoryCommentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useRepository_Issues_CommentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRepository_Issues_CommentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useRepositoryCommentsQuery({
+ * const { data, loading, error } = useRepository_Issues_CommentsQuery({
  *   variables: {
  *      name: // value for 'name'
  *      owner: // value for 'owner'
@@ -25926,14 +25976,14 @@ export const RepositoryCommentsDocument = gql`
  *   },
  * });
  */
-export function useRepositoryCommentsQuery(baseOptions: Apollo.QueryHookOptions<RepositoryCommentsQuery, RepositoryCommentsQueryVariables>) {
+export function useRepository_Issues_CommentsQuery(baseOptions: Apollo.QueryHookOptions<Repository_Issues_CommentsQuery, Repository_Issues_CommentsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<RepositoryCommentsQuery, RepositoryCommentsQueryVariables>(RepositoryCommentsDocument, options);
+        return Apollo.useQuery<Repository_Issues_CommentsQuery, Repository_Issues_CommentsQueryVariables>(Repository_Issues_CommentsDocument, options);
       }
-export function useRepositoryCommentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RepositoryCommentsQuery, RepositoryCommentsQueryVariables>) {
+export function useRepository_Issues_CommentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Repository_Issues_CommentsQuery, Repository_Issues_CommentsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<RepositoryCommentsQuery, RepositoryCommentsQueryVariables>(RepositoryCommentsDocument, options);
+          return Apollo.useLazyQuery<Repository_Issues_CommentsQuery, Repository_Issues_CommentsQueryVariables>(Repository_Issues_CommentsDocument, options);
         }
-export type RepositoryCommentsQueryHookResult = ReturnType<typeof useRepositoryCommentsQuery>;
-export type RepositoryCommentsLazyQueryHookResult = ReturnType<typeof useRepositoryCommentsLazyQuery>;
-export type RepositoryCommentsQueryResult = Apollo.QueryResult<RepositoryCommentsQuery, RepositoryCommentsQueryVariables>;
+export type Repository_Issues_CommentsQueryHookResult = ReturnType<typeof useRepository_Issues_CommentsQuery>;
+export type Repository_Issues_CommentsLazyQueryHookResult = ReturnType<typeof useRepository_Issues_CommentsLazyQuery>;
+export type Repository_Issues_CommentsQueryResult = Apollo.QueryResult<Repository_Issues_CommentsQuery, Repository_Issues_CommentsQueryVariables>;

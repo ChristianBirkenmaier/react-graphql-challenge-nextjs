@@ -1,7 +1,20 @@
 import { gql } from "@apollo/client";
 
 export const QUERY_REPOSITORY = gql`
-  query Repository(
+  query Repository($name: String!, $owner: String!) {
+    repository(name: $name, owner: $owner) {
+      name
+      owner {
+        login
+      }
+      issues {
+        totalCount
+      }
+    }
+  }
+`;
+export const QUERY_REPOSITORY_ISSUES = gql`
+  query Repository_Issues(
     $name: String!
     $owner: String!
     $first: Int!
@@ -20,8 +33,8 @@ export const QUERY_REPOSITORY = gql`
   }
 `;
 
-export const QUERY_REPOSITORY_COMMENTS = gql`
-  query RepositoryComments(
+export const QUERY_REPOSITORY_ISSUES_COMMENTS = gql`
+  query Repository_Issues_Comments(
     $name: String!
     $owner: String!
     $first: Int!
