@@ -1,6 +1,18 @@
+import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
+  Box,
+  Grid,
+  Heading,
+  ListItem,
+  Spinner,
+  Text,
+  UnorderedList,
+} from "@chakra-ui/react";
 import type { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { useRepository_Issues_CommentsQuery } from "../../generated/graphql";
 
@@ -14,17 +26,32 @@ const IssuePage: NextPage = () => {
   });
   console.log({ data, error, loading });
   return (
-    <div>
-      <h3>Comment Page</h3>
-      {error && <p>Error ...</p>}
-      {loading && <p>Loading ...</p>}
-      <div>{data?.repository?.issue?.body}</div>
-      <ul>
-        {data?.repository?.issue?.comments.nodes?.map((node) => (
-          <li key={node?.id}>{node?.body}</li>
-        ))}
-      </ul>
-    </div>
+    <>
+      <Head>
+        <title>{`See all comments from ${name}`}</title>
+      </Head>
+      <Grid>
+        <Heading>Comment Page</Heading>
+        {error && (
+          <Alert status="error">
+            <AlertIcon />
+            <AlertTitle>Error!</AlertTitle>
+            <AlertDescription>
+              An error occured while fetching your data, sorry :(
+            </AlertDescription>
+          </Alert>
+        )}
+        {loading && <Spinner />}
+        <Box>
+          <Text>{data?.repository?.issue?.body}</Text>
+          <UnorderedList>
+            {data?.repository?.issue?.comments.nodes?.map((node) => (
+              <ListItem key={node?.id}>{node?.body}</ListItem>
+            ))}
+          </UnorderedList>
+        </Box>
+      </Grid>
+    </>
   );
 };
 

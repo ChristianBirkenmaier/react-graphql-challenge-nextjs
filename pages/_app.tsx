@@ -1,4 +1,4 @@
-import "../styles/globals.css";
+// import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import {
   ApolloClient,
@@ -10,6 +10,8 @@ import { GRAPHQL_URI } from "../config/constants";
 import { setContext } from "@apollo/client/link/context";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ChakraProvider } from "@chakra-ui/react";
+import theme from "./theme";
 
 const createClient = (token: string) => {
   const httpLink = createHttpLink({
@@ -67,12 +69,14 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <ApolloProvider client={createClient(token!)}>
-      <header>
-        <div>
-          <Link href="/">Dashboard</Link>
-        </div>
-      </header>
-      <Component {...pageProps} />
+      <ChakraProvider theme={theme}>
+        <header>
+          <div>
+            <Link href="/">Dashboard</Link>
+          </div>
+        </header>
+        <Component {...pageProps} />
+      </ChakraProvider>
     </ApolloProvider>
   );
 }

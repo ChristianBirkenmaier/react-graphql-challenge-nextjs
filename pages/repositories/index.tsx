@@ -1,10 +1,27 @@
+import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
+  Box,
+  Button,
+  Divider,
+  FormControl,
+  FormHelperText,
+  Grid,
+  Heading,
+  Input,
+  Select,
+  Spinner,
+  Text,
+} from "@chakra-ui/react";
 import { NextPage } from "next";
+import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import {
   IssueState,
-  useRepositoryLazyQuery,
   useRepository_IssuesLazyQuery,
 } from "../../generated/graphql";
 
@@ -38,53 +55,67 @@ const RepositoryPage: NextPage = () => {
     return false;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
     loadRepositoryData({ variables: { name, first, owner, states } });
   };
 
   const Data = () => {
-    if (loading) return <p>Loading ...</p>;
-    if (error) return <p>Error ...</p>;
-    if (!data) return null;
+    if (loading) return <Spinner />;
+    if (error)
+      return (
+        <Alert status="error">
+          <AlertIcon />
+          <AlertTitle>Error!</AlertTitle>
+          <AlertDescription>
+            An error occured while fetching your data, sorry :(
+          </AlertDescription>
+        </Alert>
+      );
+    if (!data)
+      return <Text>Sadly, there seems to be no data available :(</Text>;
     return (
       <>
-        <h3>Repository</h3>
-        <p>#Issues: {data.repository?.issues.totalCount}</p>
-        {data.repository?.issues.nodes?.filter(filterFunc).map((issue) => {
-          if (!issue) return null;
-          return (
-            <div key={issue.number}>
-              <ul>
-                <h3>{issue.title}</h3>
-                <p>{issue.body}</p>
-                <Link
-                  href={`/issues/${issue.number}?name=${name}&owner=${owner}`}
-                >
-                  <button>Show more</button>
-                </Link>
-              </ul>
-            </div>
-          );
-        })}
+        <Text>#Issues: {data.repository?.issues.totalCount}</Text>
+        <Box mx="1rem">
+          {data.repository?.issues.nodes?.filter(filterFunc).map((issue) => {
+            if (!issue) return null;
+            return (
+              <Box key={issue.number} my="2rem">
+                <ul>
+                  <Heading size="sm">{issue.title}</Heading>
+                  <Text>{issue.body}</Text>
+                  <Link
+                    href={`/issues/${issue.number}?name=${name}&owner=${owner}`}
+                  >
+                    <Button>Show more</Button>
+                  </Link>
+                </ul>
+              </Box>
+            );
+          })}
+        </Box>
       </>
     );
   };
 
   return (
-    <div>
-      <h3>Repository</h3>
-      <h5>Name: {name}</h5>
-      <h5>Owner: {owner}</h5>
-      <form onSubmit={handleSubmit}>
-        <p>Search for issues ...</p>
-        <input
+    <Grid>
+      <Head>
+        <title>{`Issues from ${name}`}</title>
+      </Head>
+      <Heading>Repository</Heading>
+      <Heading size="sm">Name: {name}</Heading>
+      <Heading size="sm">Owner: {owner}</Heading>
+      <FormControl>
+        <Text>Search for issues ...</Text>
+        <Input
           type="number"
           placeholder="First"
           value={first}
           onChange={(e) => setFirst(Number(e.target.value))}
         />
-        <select
+        <FormHelperText mb="1rem"># Issues</FormHelperText>
+        <Select
           name="states"
           id="states"
           value={states}
@@ -92,19 +123,19 @@ const RepositoryPage: NextPage = () => {
         >
           <option value={IssueState.Open}>OPEN</option>
           <option value={IssueState.Closed}>CLOSED</option>
-        </select>
-        <input
+        </Select>
+        <FormHelperText mb="1rem">Open / Closed</FormHelperText>
+        <Input
           type="text"
-          name=""
-          id=""
           placeholder="Filter search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <button>Fetch</button>
-      </form>
+        <Button onClick={handleSubmit}>Search</Button>
+      </FormControl>
+      <Divider m="1rem" />
       <Data />
-    </div>
+    </Grid>
   );
 };
 
