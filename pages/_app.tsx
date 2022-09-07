@@ -8,14 +8,18 @@ import {
 } from "@apollo/client";
 import { GRAPHQL_URI } from "../config/constants";
 import { setContext } from "@apollo/client/link/context";
-import Link from "next/link";
+import Navlink from "next/link";
 import { useEffect, useState } from "react";
 import {
   Button,
   ChakraProvider,
+  Flex,
+  Link,
   FormControl,
   Grid,
   Input,
+  Stack,
+  Divider,
 } from "@chakra-ui/react";
 import theme from "../styles/theme";
 
@@ -65,11 +69,23 @@ function MyApp({ Component, pageProps }: AppProps) {
         />
       ) : (
         <ApolloProvider client={createClient(token!)}>
-          <header>
-            <div>
-              <Link href="/">Dashboard</Link>
-            </div>
-          </header>
+          <Stack direction={"row"} spacing={4}>
+            <Navlink href="/">
+              <Link
+                p={2}
+                fontSize="lg"
+                fontWeight={500}
+                color="gray.600"
+                _hover={{
+                  textDecoration: "none",
+                  color: "gray.800",
+                }}
+              >
+                Repositories
+              </Link>
+            </Navlink>
+          </Stack>
+          <Divider mb="1rem" />
           <Component {...pageProps} />
         </ApolloProvider>
       )}

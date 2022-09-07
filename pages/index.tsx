@@ -44,7 +44,7 @@ const Home: NextPage = () => {
   return (
     <>
       <Head>
-        <title>{`Issues from ${name}`}</title>
+        <title>Repositories</title>
       </Head>
       <Grid>
         <FormControl>
@@ -86,7 +86,7 @@ const Home: NextPage = () => {
                 <Text>Owner: {repository?.owner.login}</Text>
                 <Text>Issues: {repository?.issues.totalCount}</Text>
                 <Link
-                  href={`/repositories?name=${repository?.name}&owner=${repository?.owner.login}`}
+                  href={`/repository?name=${repository?.name}&owner=${repository?.owner.login}`}
                 >
                   <Button>Show more</Button>
                 </Link>

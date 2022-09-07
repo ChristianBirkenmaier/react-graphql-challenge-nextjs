@@ -85,7 +85,7 @@ const RepositoryPage: NextPage = () => {
                   <Heading size="sm">{issue.title}</Heading>
                   <Text>{issue.body}</Text>
                   <Link
-                    href={`/issues/${issue.number}?name=${name}&owner=${owner}`}
+                    href={`/issue/${issue.number}?name=${name}&owner=${owner}`}
                   >
                     <Button>Show more</Button>
                   </Link>

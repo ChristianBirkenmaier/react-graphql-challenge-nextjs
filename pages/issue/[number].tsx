@@ -28,10 +28,10 @@ const IssuePage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>{`See all comments from ${name}`}</title>
+        <title>{`See all comments from ${name}-${data?.repository?.issue?.title}`}</title>
       </Head>
       <Grid>
-        <Heading>Comment Page</Heading>
+        <Heading>{data?.repository?.issue?.title}</Heading>
         {error && (
           <Alert status="error">
             <AlertIcon />
