@@ -11,31 +11,25 @@ import {
   Grid,
   Heading,
   Input,
-  Select,
+  Radio,
+  RadioGroup,
   Spinner,
+  Stack,
   Text,
 } from "@chakra-ui/react";
 import { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IssueState, useIssuesLazyQuery } from "../../generated/graphql";
 
-type Issue = {
-  __typename?: "Issue" | undefined;
-  body: string;
-  title: string;
-  number: number;
-} | null;
-
 const RepositoryPage: NextPage = () => {
-  const [first, setFirst] = useState<number>(2);
-  const [states, setStates] = useState<IssueState>(IssueState.Open);
-  const [search, setSearch] = useState<string>();
+  const [last, setLast] = useState<number>(2);
+  const [search, setSearch] = useState<string>("");
+  const [filterState, setFilterState] = useState("1");
 
   const router = useRouter();
-  console.log({ router });
 
   const name = router.query.name as string;
   const owner = router.query.owner as string;
@@ -44,86 +38,82 @@ const RepositoryPage: NextPage = () => {
 
   useEffect(() => {
     if (data) return;
-    if (!first || !states || !name || !owner) return;
-    loadIssueData({ variables: { first, name, owner, states } });
-  }, [loadIssueData, first, name, owner, states, data]);
+    if (!last || !name || !owner) return;
+    loadIssueData({
+      variables: {
+        last,
+        name,
+        owner,
+        states: mapStateToQuery(filterState),
+      },
+    });
+  }, [data, filterState, last, loadIssueData, name, owner]);
 
-  const filterFunc = (issue: Issue) => {
-    if (!search) return true;
-    if (issue?.body.includes(search) || issue?.title.includes(search))
-      return true;
-    return false;
-  };
+  const memoIssues = useMemo(
+    () =>
+      data?.repository?.issues.nodes
+        ?.filter((issue) => {
+          if (!issue) return false;
+          if (!search) return true;
+          if (issue?.body.includes(search) || issue?.title.includes(search))
+            return true;
+          return false;
+        })
+        .reverse(),
+    [data, search]
+  );
 
-  const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
-    loadIssueData({ variables: { name, first, owner, states } });
-  };
+  const loadData = () =>
+    loadIssueData({
+      variables: {
+        name,
+        last,
+        owner,
+        states: mapStateToQuery(filterState),
+      },
+    });
 
-  const Data = () => {
-    if (loading) return <Spinner />;
-    if (error)
-      return (
-        <Alert status="error">
-          <AlertIcon />
-          <AlertTitle>Error!</AlertTitle>
-          <AlertDescription>
-            An error occured while fetching your data, sorry :(
-          </AlertDescription>
-        </Alert>
-      );
-    if (!data)
-      return <Text>Sadly, there seems to be no data available :(</Text>;
-    return (
-      <>
-        <Text>#Issues: {data.repository?.issues.totalCount}</Text>
-        <Box mx="1rem">
-          {data.repository?.issues.nodes?.filter(filterFunc).map((issue) => {
-            if (!issue) return null;
-            return (
-              <Box key={issue.number} my="2rem">
-                <ul>
-                  <Heading size="sm">{issue.title}</Heading>
-                  <Text>{issue.body}</Text>
-                  <Link
-                    href={`/issue/${issue.number}?name=${name}&owner=${owner}`}
-                  >
-                    <Button>Show more</Button>
-                  </Link>
-                </ul>
-              </Box>
-            );
-          })}
-        </Box>
-      </>
-    );
-  };
+  const fetchMore = () =>
+    loadIssueData({
+      variables: {
+        name,
+        last,
+        owner,
+        before: data?.repository?.issues.pageInfo.endCursor,
+      },
+    });
+
+  console.log({ data });
+  console.log(
+    data?.repository?.issues.pageInfo.endCursor,
+    data?.repository?.issues.pageInfo.startCursor,
+    data?.repository?.issues.pageInfo.hasNextPage,
+    data?.repository?.issues.pageInfo.hasPreviousPage
+  );
 
   return (
     <Grid>
       <Head>
         <title>{`Issues from ${name}`}</title>
       </Head>
-      <Heading>Repository</Heading>
-      <Heading size="sm">Name: {name}</Heading>
-      <Heading size="sm">Owner: {owner}</Heading>
+      <Heading size="md">{`${name} - ${owner}`}</Heading>
+      <Divider my="1rem" />
       <FormControl>
-        <Text>Search for issues ...</Text>
         <Input
           type="number"
           placeholder="First"
-          value={first}
-          onChange={(e) => setFirst(Number(e.target.value))}
+          value={last}
+          onChange={(e) => setLast(Number(e.target.value))}
         />
         <FormHelperText mb="1rem"># Issues</FormHelperText>
-        <Select
-          name="states"
-          id="states"
-          value={states}
-          onChange={(e) => setStates(e.target.value as IssueState)}
-        >
-          <option value={IssueState.Open}>OPEN</option>
-          <option value={IssueState.Closed}>CLOSED</option>
-        </Select>
+
+        <RadioGroup onChange={setFilterState} value={filterState}>
+          <Stack direction="row">
+            <Radio value="1">ALL</Radio>
+            <Radio value="2">OPEN</Radio>
+            <Radio value="3">CLOSED</Radio>
+          </Stack>
+        </RadioGroup>
         <FormHelperText mb="1rem">Open / Closed</FormHelperText>
         <Input
           type="text"
@@ -131,12 +121,69 @@ const RepositoryPage: NextPage = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button onClick={handleSubmit}>Search</Button>
+        <Button onClick={loadData}>Search</Button>
       </FormControl>
       <Divider m="1rem" />
-      <Data />
+      {loading && <Spinner />}
+      {error && <CustomAlert />}
+      {data && (
+        <Box mx="1rem">
+          <Text>#Issues: {data.repository?.issues.totalCount}</Text>
+          {memoIssues?.map((issue) => {
+            if (!issue) return null;
+            return (
+              <Box key={issue.number} my="2rem">
+                <Heading size="sm">{issue.title}</Heading>
+                <Text fontSize="sm">By {issue.author?.login}</Text>
+                <Divider mb="0.5rem" />
+                <Text>
+                  {getBody({ text: issue.body, maxLength: 200 })}{" "}
+                  <Link
+                    href={`/issue/${issue.number}?name=${name}&owner=${owner}`}
+                  >
+                    <Button ml="0.5rem" size="xs">
+                      Show more
+                    </Button>
+                  </Link>
+                </Text>
+              </Box>
+            );
+          })}
+          <Button onClick={fetchMore}>Fetch more</Button>
+        </Box>
+      )}
     </Grid>
   );
 };
+
+function CustomAlert() {
+  return (
+    <Alert status="error">
+      <AlertIcon />
+      <AlertTitle>Error!</AlertTitle>
+      <AlertDescription>
+        An error occured while fetching your data, sorry :(
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function mapStateToQuery(filterState: string) {
+  switch (filterState) {
+    case "1":
+      return undefined;
+    case "2":
+      return IssueState.Open;
+    case "3":
+      return IssueState.Closed;
+    default:
+      break;
+  }
+}
+
+function getBody({ text, maxLength }: { text: string; maxLength: number }) {
+  if (text.length <= maxLength) return text;
+  return `${text.substring(0, maxLength)}...`;
+}
 
 export default RepositoryPage;

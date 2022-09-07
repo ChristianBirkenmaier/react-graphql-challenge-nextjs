@@ -25833,12 +25833,13 @@ export type RepositoryQuery = { __typename?: 'Query', repository?: { __typename?
 export type IssuesQueryVariables = Exact<{
   name: Scalars['String'];
   owner: Scalars['String'];
-  first: Scalars['Int'];
+  last: Scalars['Int'];
   states?: InputMaybe<Array<IssueState> | IssueState>;
+  before?: InputMaybe<Scalars['String']>;
 }>;
 
 
-export type IssuesQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issues: { __typename?: 'IssueConnection', totalCount: number, nodes?: Array<{ __typename?: 'Issue', body: string, title: string, number: number } | null> | null } } | null };
+export type IssuesQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issues: { __typename?: 'IssueConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename?: 'Issue', state: IssueState, body: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null> | null } } | null };
 
 export type CommentsQueryVariables = Exact<{
   name: Scalars['String'];
@@ -25848,7 +25849,7 @@ export type CommentsQueryVariables = Exact<{
 }>;
 
 
-export type CommentsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issue?: { __typename?: 'Issue', body: string, id: string, title: string, number: number, comments: { __typename?: 'IssueCommentConnection', nodes?: Array<{ __typename?: 'IssueComment', id: string, body: string } | null> | null } } | null } | null };
+export type CommentsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issue?: { __typename?: 'Issue', state: IssueState, body: string, id: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename?: 'IssueComment', id: string, body: string, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null> | null } } | null } | null };
 
 
 export const RepositoryDocument = gql`
@@ -25894,11 +25895,21 @@ export type RepositoryQueryHookResult = ReturnType<typeof useRepositoryQuery>;
 export type RepositoryLazyQueryHookResult = ReturnType<typeof useRepositoryLazyQuery>;
 export type RepositoryQueryResult = Apollo.QueryResult<RepositoryQuery, RepositoryQueryVariables>;
 export const IssuesDocument = gql`
-    query Issues($name: String!, $owner: String!, $first: Int!, $states: [IssueState!]) {
+    query Issues($name: String!, $owner: String!, $last: Int!, $states: [IssueState!], $before: String) {
   repository(name: $name, owner: $owner) {
-    issues(first: $first, states: $states) {
+    issues(last: $last, states: $states, before: $before) {
       totalCount
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
+      }
       nodes {
+        author {
+          login
+        }
+        state
         body
         title
         number
@@ -25922,8 +25933,9 @@ export const IssuesDocument = gql`
  *   variables: {
  *      name: // value for 'name'
  *      owner: // value for 'owner'
- *      first: // value for 'first'
+ *      last: // value for 'last'
  *      states: // value for 'states'
+ *      before: // value for 'before'
  *   },
  * });
  */
@@ -25942,12 +25954,25 @@ export const CommentsDocument = gql`
     query Comments($name: String!, $owner: String!, $first: Int!, $number: Int!) {
   repository(name: $name, owner: $owner) {
     issue(number: $number) {
+      state
       body
       id
       title
       number
+      author {
+        login
+      }
       comments(first: $first) {
+        pageInfo {
+          endCursor
+          hasNextPage
+          hasPreviousPage
+          startCursor
+        }
         nodes {
+          author {
+            login
+          }
           id
           body
         }
