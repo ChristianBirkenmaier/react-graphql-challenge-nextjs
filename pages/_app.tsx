@@ -11,7 +11,7 @@ import { setContext } from "@apollo/client/link/context";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChakraProvider } from "@chakra-ui/react";
-import theme from "./theme";
+import theme from "../styles/theme";
 
 const createClient = (token: string) => {
   const httpLink = createHttpLink({
