@@ -17,27 +17,38 @@ export const QUERY_ISSUES = gql`
   query Issues(
     $name: String!
     $owner: String!
-    $last: Int!
+    $last: Int
+    $first: Int
     $states: [IssueState!]
     $before: String
+    $after: String
   ) {
     repository(name: $name, owner: $owner) {
-      issues(last: $last, states: $states, before: $before) {
-        totalCount
+      issues(
+        last: $last
+        first: $first
+        states: $states
+        before: $before
+        after: $after
+      ) {
         pageInfo {
           endCursor
           hasNextPage
           hasPreviousPage
           startCursor
         }
-        nodes {
-          author {
-            login
+        totalCount
+        edges {
+          cursor
+          node {
+            author {
+              login
+            }
+            state
+            body
+            title
+            number
           }
-          state
-          body
-          title
-          number
         }
       }
     }

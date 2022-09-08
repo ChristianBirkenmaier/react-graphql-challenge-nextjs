@@ -1586,8 +1586,12 @@ export type CheckRunFilter = {
   checkName?: InputMaybe<Scalars['String']>;
   /** Filters the check runs by this type. */
   checkType?: InputMaybe<CheckRunType>;
-  /** Filters the check runs by this status. */
+  /** Filters the check runs by these conclusions. */
+  conclusions?: InputMaybe<Array<CheckConclusionState>>;
+  /** Filters the check runs by this status. Superceded by statuses. */
   status?: InputMaybe<CheckStatusState>;
+  /** Filters the check runs by this status. Overrides status. */
+  statuses?: InputMaybe<Array<CheckStatusState>>;
 };
 
 /** Descriptive details about the check run. */
@@ -2064,8 +2068,13 @@ export type Commit = GitObject & Node & Subscribable & UniformResourceLocatable 
   authors: GitActorConnection;
   /** Fetches `git blame` information. */
   blame: Blame;
-  /** The number of changed files in this commit. */
+  /**
+   * We recommend using the `changedFielsIfAvailable` field instead of `changedFiles`, as `changedFiles` will cause your request to return an error if GitHub is unable to calculate the number of changed files.
+   * @deprecated `changedFiles` will be removed. Use `changedFilesIfAvailable` instead. Removal on 2023-01-01 UTC.
+   */
   changedFiles: Scalars['Int'];
+  /** The number of changed files in this commit. If GitHub is unable to calculate the number of changed files (for example due to a timeout), this will return `null`. We recommend using this field instead of `changedFiles`. */
+  changedFilesIfAvailable?: Maybe<Scalars['Int']>;
   /** The check suites associated with a commit. */
   checkSuites?: Maybe<CheckSuiteConnection>;
   /** Comments made on the commit. */
@@ -25774,8 +25783,20 @@ export type Workflow = Node & {
   id: Scalars['ID'];
   /** The name of the workflow. */
   name: Scalars['String'];
+  /** The runs of the workflow. */
+  runs: WorkflowRunConnection;
   /** Identifies the date and time when the object was last updated. */
   updatedAt: Scalars['DateTime'];
+};
+
+
+/** A workflow contains meta information about an Actions workflow file. */
+export type WorkflowRunsArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  orderBy?: InputMaybe<WorkflowRunOrder>;
 };
 
 /** A workflow run. */
@@ -25822,6 +25843,42 @@ export type WorkflowRunPendingDeploymentRequestsArgs = {
   last?: InputMaybe<Scalars['Int']>;
 };
 
+/** The connection type for WorkflowRun. */
+export type WorkflowRunConnection = {
+  __typename?: 'WorkflowRunConnection';
+  /** A list of edges. */
+  edges?: Maybe<Array<Maybe<WorkflowRunEdge>>>;
+  /** A list of nodes. */
+  nodes?: Maybe<Array<Maybe<WorkflowRun>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Identifies the total count of items in the connection. */
+  totalCount: Scalars['Int'];
+};
+
+/** An edge in a connection. */
+export type WorkflowRunEdge = {
+  __typename?: 'WorkflowRunEdge';
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String'];
+  /** The item at the end of the edge. */
+  node?: Maybe<WorkflowRun>;
+};
+
+/** Ways in which lists of workflow runs can be ordered upon return. */
+export type WorkflowRunOrder = {
+  /** The direction in which to order workflow runs by the specified field. */
+  direction: OrderDirection;
+  /** The field by which to order workflows. */
+  field: WorkflowRunOrderField;
+};
+
+/** Properties by which workflow run connections can be ordered. */
+export enum WorkflowRunOrderField {
+  /** Order workflow runs by most recently created */
+  CreatedAt = 'CREATED_AT'
+}
+
 export type RepositoryQueryVariables = Exact<{
   name: Scalars['String'];
   owner: Scalars['String'];
@@ -25833,13 +25890,15 @@ export type RepositoryQuery = { __typename?: 'Query', repository?: { __typename?
 export type IssuesQueryVariables = Exact<{
   name: Scalars['String'];
   owner: Scalars['String'];
-  last: Scalars['Int'];
+  last?: InputMaybe<Scalars['Int']>;
+  first?: InputMaybe<Scalars['Int']>;
   states?: InputMaybe<Array<IssueState> | IssueState>;
   before?: InputMaybe<Scalars['String']>;
+  after?: InputMaybe<Scalars['String']>;
 }>;
 
 
-export type IssuesQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issues: { __typename?: 'IssueConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename?: 'Issue', state: IssueState, body: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null> | null } } | null };
+export type IssuesQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issues: { __typename?: 'IssueConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, edges?: Array<{ __typename?: 'IssueEdge', cursor: string, node?: { __typename?: 'Issue', state: IssueState, body: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null } | null> | null } } | null };
 
 export type CommentsQueryVariables = Exact<{
   name: Scalars['String'];
@@ -25895,24 +25954,33 @@ export type RepositoryQueryHookResult = ReturnType<typeof useRepositoryQuery>;
 export type RepositoryLazyQueryHookResult = ReturnType<typeof useRepositoryLazyQuery>;
 export type RepositoryQueryResult = Apollo.QueryResult<RepositoryQuery, RepositoryQueryVariables>;
 export const IssuesDocument = gql`
-    query Issues($name: String!, $owner: String!, $last: Int!, $states: [IssueState!], $before: String) {
+    query Issues($name: String!, $owner: String!, $last: Int, $first: Int, $states: [IssueState!], $before: String, $after: String) {
   repository(name: $name, owner: $owner) {
-    issues(last: $last, states: $states, before: $before) {
-      totalCount
+    issues(
+      last: $last
+      first: $first
+      states: $states
+      before: $before
+      after: $after
+    ) {
       pageInfo {
         endCursor
         hasNextPage
         hasPreviousPage
         startCursor
       }
-      nodes {
-        author {
-          login
+      totalCount
+      edges {
+        cursor
+        node {
+          author {
+            login
+          }
+          state
+          body
+          title
+          number
         }
-        state
-        body
-        title
-        number
       }
     }
   }
@@ -25934,8 +26002,10 @@ export const IssuesDocument = gql`
  *      name: // value for 'name'
  *      owner: // value for 'owner'
  *      last: // value for 'last'
+ *      first: // value for 'first'
  *      states: // value for 'states'
  *      before: // value for 'before'
+ *      after: // value for 'after'
  *   },
  * });
  */
