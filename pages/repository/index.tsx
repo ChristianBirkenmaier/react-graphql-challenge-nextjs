@@ -29,19 +29,23 @@ import {
   useIssuesQuery,
 } from "../../generated/graphql";
 
+type Pagination = {
+  after?: String | null;
+  before?: String | null;
+  first?: Number;
+  last?: Number;
+};
+
 const RepositoryPage: NextPage = () => {
   const [amount, setAmount] = useState<number>(5);
   const [search, setSearch] = useState<string>("");
   const [filterState, setFilterState] = useState("1");
+  const [pagination, setPagination] = useState<Pagination>({});
 
   const router = useRouter();
 
   const name = router.query.name as string;
   const owner = router.query.owner as string;
-
-  // const [loadIssueData, { data, error, loading }] = useIssuesLazyQuery({
-  //   fetchPolicy: "cache-and-network",
-  // });
 
   const {
     data,
@@ -50,44 +54,20 @@ const RepositoryPage: NextPage = () => {
     refetch: loadIssueData,
   } = useIssuesQuery({
     variables: {
+      // @ts-ignore
       last: amount,
       name,
       owner,
       states: mapStateToQuery(filterState),
+      ...pagination,
     },
   });
 
-  console.error({ error });
+  const { totalCount, pageInfo, edges } = data?.repository?.issues || {};
 
-  // useEffect(() => {
-  //   if (data) return;
-  //   if (!last || !name || !owner) return;
-  //   loadIssueData({
-  //     variables: {
-  //       last,
-  //       name,
-  //       owner,
-  //       states: mapStateToQuery(filterState),
-  //     },
-  //   });
-  // }, [data, filterState, last, loadIssueData, name, owner]);
-
-  // const memoIssues = useMemo(
-  //   () =>
-  //     data?.repository?.issues.nodes
-  //       ?.filter((issue) => {
-  //         if (!issue) return false;
-  //         if (!search) return true;
-  //         if (issue?.body.includes(search) || issue?.title.includes(search))
-  //           return true;
-  //         return false;
-  //       })
-  //       .reverse(),
-  //   [data, search]
-  // );
   const memoIssues = useMemo(
     () =>
-      data?.repository?.issues.edges
+      edges
         ?.filter((edge) => {
           if (!edge?.node) return false;
           if (!search) return true;
@@ -99,41 +79,44 @@ const RepositoryPage: NextPage = () => {
           return false;
         })
         .reverse(),
-    [data, search]
+    [search, edges]
   );
 
-  const loadData = () =>
-    loadIssueData({
-      name,
-      last: amount,
-      owner,
-      states: mapStateToQuery(filterState),
-    });
-
   const fetchBefore = () => {
-    loadIssueData({
-      name,
+    setPagination({
       first: undefined,
       last: amount,
-      owner,
-      states: mapStateToQuery(filterState),
       after: undefined,
-      before: data?.repository?.issues.pageInfo.startCursor,
+      before: pageInfo?.startCursor,
     });
+    // loadIssueData({
+    //   name,
+    //   first: undefined,
+    //   last: amount,
+    //   owner,
+    //   states: mapStateToQuery(filterState),
+    //   after: undefined,
+    //   before: pageInfo?.startCursor,
+    // });
   };
   const fetchAfter = () => {
-    loadIssueData({
-      name,
+    setPagination({
       first: amount,
       last: undefined,
-      owner,
-      states: mapStateToQuery(filterState),
-      after: data?.repository?.issues.pageInfo.endCursor,
+      after: pageInfo?.endCursor,
       before: undefined,
     });
-  };
 
-  console.log(data?.repository?.issues.pageInfo);
+    // loadIssueData({
+    //   name,
+    //   first: amount,
+    //   last: undefined,
+    //   owner,
+    //   states: mapStateToQuery(filterState),
+    //   after: pageInfo?.endCursor,
+    //   before: undefined,
+    // });
+  };
 
   return (
     <Grid>
@@ -166,31 +149,27 @@ const RepositoryPage: NextPage = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button disabled onClick={loadData}>
-          Search
-        </Button>
       </FormControl>
       <Divider m="1rem" />
       {loading && <Spinner />}
       {error && <CustomAlert />}
       {data && (
         <Box mx="1rem">
-          <Text>#Issues: {data.repository?.issues.totalCount}</Text>
+          <Text>#Issues: {totalCount}</Text>
           {memoIssues?.map((edge) => {
             if (!edge?.node) return null;
+            const { comments, title, number, author, body } = edge.node;
             return (
-              <Box key={edge.node.number} my="2rem">
+              <Box key={number} my="2rem">
                 <Flex>
-                  <Text fontWeight="bold">{edge.node.title}</Text>
-                  <Text>{`(${edge.node.comments.totalCount})`}</Text>
+                  <Text fontWeight="bold">{title}</Text>
+                  <Text>{`(${comments.totalCount})`}</Text>
                 </Flex>
-                <Text fontSize="sm">By {edge.node.author?.login}</Text>
+                <Text fontSize="sm">By {author?.login}</Text>
                 <Divider mb="0.5rem" />
                 <Text>
-                  {getBody({ text: edge.node.body, maxLength: 200 })}{" "}
-                  <Link
-                    href={`/issue/${edge.node.number}?name=${name}&owner=${owner}`}
-                  >
+                  {getBody({ text: body, maxLength: 200 })}{" "}
+                  <Link href={`/issue/${number}?name=${name}&owner=${owner}`}>
                     <Button ml="0.5rem" size="xs">
                       Show more
                     </Button>
@@ -199,16 +178,10 @@ const RepositoryPage: NextPage = () => {
               </Box>
             );
           })}
-          <Button
-            disabled={!data.repository?.issues.pageInfo.hasNextPage}
-            onClick={fetchAfter}
-          >
+          <Button disabled={!pageInfo?.hasNextPage} onClick={fetchAfter}>
             Previous Page
           </Button>
-          <Button
-            disabled={!data.repository?.issues.pageInfo.hasPreviousPage}
-            onClick={fetchBefore}
-          >
+          <Button disabled={!pageInfo?.hasPreviousPage} onClick={fetchBefore}>
             Next Page
           </Button>
         </Box>
