@@ -6,6 +6,7 @@ import {
   Box,
   Button,
   Divider,
+  Flex,
   FormControl,
   FormHelperText,
   Grid,
@@ -179,7 +180,10 @@ const RepositoryPage: NextPage = () => {
             if (!edge?.node) return null;
             return (
               <Box key={edge.node.number} my="2rem">
-                <Heading size="sm">{edge.node.title}</Heading>
+                <Flex>
+                  <Text fontWeight="bold">{edge.node.title}</Text>
+                  <Text>{`(${edge.node.comments.totalCount})`}</Text>
+                </Flex>
                 <Text fontSize="sm">By {edge.node.author?.login}</Text>
                 <Divider mb="0.5rem" />
                 <Text>

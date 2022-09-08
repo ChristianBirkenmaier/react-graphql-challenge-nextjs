@@ -48,6 +48,9 @@ export const QUERY_ISSUES = gql`
             body
             title
             number
+            comments {
+              totalCount
+            }
           }
         }
       }
