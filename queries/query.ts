@@ -56,7 +56,15 @@ export const QUERY_ISSUES = gql`
 `;
 
 export const QUERY_COMMENTS = gql`
-  query Comments($name: String!, $owner: String!, $first: Int!, $number: Int!) {
+  query Comments(
+    $name: String!
+    $owner: String!
+    $first: Int
+    $number: Int!
+    $last: Int
+    $before: String
+    $after: String
+  ) {
     repository(name: $name, owner: $owner) {
       issue(number: $number) {
         state
@@ -67,7 +75,8 @@ export const QUERY_COMMENTS = gql`
         author {
           login
         }
-        comments(first: $first) {
+        comments(last: $last, first: $first, before: $before, after: $after) {
+          totalCount
           pageInfo {
             endCursor
             hasNextPage

@@ -25903,12 +25903,15 @@ export type IssuesQuery = { __typename?: 'Query', repository?: { __typename?: 'R
 export type CommentsQueryVariables = Exact<{
   name: Scalars['String'];
   owner: Scalars['String'];
-  first: Scalars['Int'];
+  first?: InputMaybe<Scalars['Int']>;
   number: Scalars['Int'];
+  last?: InputMaybe<Scalars['Int']>;
+  before?: InputMaybe<Scalars['String']>;
+  after?: InputMaybe<Scalars['String']>;
 }>;
 
 
-export type CommentsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issue?: { __typename?: 'Issue', state: IssueState, body: string, id: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename?: 'IssueComment', id: string, body: string, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null> | null } } | null } | null };
+export type CommentsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issue?: { __typename?: 'Issue', state: IssueState, body: string, id: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename?: 'IssueComment', id: string, body: string, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null> | null } } | null } | null };
 
 
 export const RepositoryDocument = gql`
@@ -26021,7 +26024,7 @@ export type IssuesQueryHookResult = ReturnType<typeof useIssuesQuery>;
 export type IssuesLazyQueryHookResult = ReturnType<typeof useIssuesLazyQuery>;
 export type IssuesQueryResult = Apollo.QueryResult<IssuesQuery, IssuesQueryVariables>;
 export const CommentsDocument = gql`
-    query Comments($name: String!, $owner: String!, $first: Int!, $number: Int!) {
+    query Comments($name: String!, $owner: String!, $first: Int, $number: Int!, $last: Int, $before: String, $after: String) {
   repository(name: $name, owner: $owner) {
     issue(number: $number) {
       state
@@ -26032,7 +26035,8 @@ export const CommentsDocument = gql`
       author {
         login
       }
-      comments(first: $first) {
+      comments(last: $last, first: $first, before: $before, after: $after) {
+        totalCount
         pageInfo {
           endCursor
           hasNextPage
@@ -26068,6 +26072,9 @@ export const CommentsDocument = gql`
  *      owner: // value for 'owner'
  *      first: // value for 'first'
  *      number: // value for 'number'
+ *      last: // value for 'last'
+ *      before: // value for 'before'
+ *      after: // value for 'after'
  *   },
  * });
  */

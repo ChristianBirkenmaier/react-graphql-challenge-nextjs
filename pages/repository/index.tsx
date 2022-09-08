@@ -22,10 +22,14 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
-import { IssueState, useIssuesLazyQuery } from "../../generated/graphql";
+import {
+  IssueState,
+  useIssuesLazyQuery,
+  useIssuesQuery,
+} from "../../generated/graphql";
 
 const RepositoryPage: NextPage = () => {
-  const [last, setLast] = useState<number>(5);
+  const [amount, setAmount] = useState<number>(5);
   const [search, setSearch] = useState<string>("");
   const [filterState, setFilterState] = useState("1");
 
@@ -34,9 +38,25 @@ const RepositoryPage: NextPage = () => {
   const name = router.query.name as string;
   const owner = router.query.owner as string;
 
-  const [loadIssueData, { data, error, loading }] = useIssuesLazyQuery({
-    // fetchPolicy: "network-only",
+  // const [loadIssueData, { data, error, loading }] = useIssuesLazyQuery({
+  //   fetchPolicy: "cache-and-network",
+  // });
+
+  const {
+    data,
+    loading,
+    error,
+    refetch: loadIssueData,
+  } = useIssuesQuery({
+    variables: {
+      last: amount,
+      name,
+      owner,
+      states: mapStateToQuery(filterState),
+    },
   });
+
+  console.error({ error });
 
   // useEffect(() => {
   //   if (data) return;
@@ -83,34 +103,32 @@ const RepositoryPage: NextPage = () => {
 
   const loadData = () =>
     loadIssueData({
-      variables: {
-        name,
-        last,
-        owner,
-        states: mapStateToQuery(filterState),
-      },
+      name,
+      last: amount,
+      owner,
+      states: mapStateToQuery(filterState),
     });
 
   const fetchBefore = () => {
     loadIssueData({
-      variables: {
-        name,
-        last,
-        owner,
-        states: mapStateToQuery(filterState),
-        before: data?.repository?.issues.pageInfo.startCursor,
-      },
+      name,
+      first: undefined,
+      last: amount,
+      owner,
+      states: mapStateToQuery(filterState),
+      after: undefined,
+      before: data?.repository?.issues.pageInfo.startCursor,
     });
   };
   const fetchAfter = () => {
     loadIssueData({
-      variables: {
-        name,
-        first: last,
-        owner,
-        states: mapStateToQuery(filterState),
-        after: data?.repository?.issues.pageInfo.endCursor,
-      },
+      name,
+      first: amount,
+      last: undefined,
+      owner,
+      states: mapStateToQuery(filterState),
+      after: data?.repository?.issues.pageInfo.endCursor,
+      before: undefined,
     });
   };
 
@@ -127,9 +145,9 @@ const RepositoryPage: NextPage = () => {
         <Input
           type="number"
           placeholder="First"
-          value={last}
+          value={amount}
           disabled
-          onChange={(e) => setLast(Number(e.target.value))}
+          onChange={(e) => setAmount(Number(e.target.value))}
         />
         <FormHelperText mb="1rem"># Issues</FormHelperText>
 
@@ -147,7 +165,9 @@ const RepositoryPage: NextPage = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button onClick={loadData}>Search</Button>
+        <Button disabled onClick={loadData}>
+          Search
+        </Button>
       </FormControl>
       <Divider m="1rem" />
       {loading && <Spinner />}
