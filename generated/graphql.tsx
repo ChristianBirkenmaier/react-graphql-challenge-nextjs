@@ -25885,7 +25885,7 @@ export type RepositoryQueryVariables = Exact<{
 }>;
 
 
-export type RepositoryQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', name: string, owner: { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string }, issues: { __typename?: 'IssueConnection', totalCount: number } } | null };
+export type RepositoryQuery = { __typename?: 'Query', repository?: { __typename: 'Repository', id: string, name: string, owner: { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string }, issues: { __typename?: 'IssueConnection', totalCount: number } } | null };
 
 export type IssuesQueryVariables = Exact<{
   name: Scalars['String'];
@@ -25898,7 +25898,7 @@ export type IssuesQueryVariables = Exact<{
 }>;
 
 
-export type IssuesQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issues: { __typename?: 'IssueConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, edges?: Array<{ __typename?: 'IssueEdge', cursor: string, node?: { __typename?: 'Issue', state: IssueState, body: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', totalCount: number } } | null } | null> | null } } | null };
+export type IssuesQuery = { __typename?: 'Query', repository?: { __typename: 'Repository', id: string, issues: { __typename?: 'IssueConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, edges?: Array<{ __typename?: 'IssueEdge', cursor: string, node?: { __typename?: 'Issue', state: IssueState, body: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', totalCount: number } } | null } | null> | null } } | null };
 
 export type CommentsQueryVariables = Exact<{
   name: Scalars['String'];
@@ -25911,12 +25911,14 @@ export type CommentsQueryVariables = Exact<{
 }>;
 
 
-export type CommentsQuery = { __typename?: 'Query', repository?: { __typename?: 'Repository', issue?: { __typename?: 'Issue', state: IssueState, body: string, id: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename?: 'IssueComment', id: string, body: string, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null> | null } } | null } | null };
+export type CommentsQuery = { __typename?: 'Query', repository?: { __typename: 'Repository', id: string, issue?: { __typename?: 'Issue', state: IssueState, body: string, id: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename?: 'IssueComment', id: string, body: string, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null> | null } } | null } | null };
 
 
 export const RepositoryDocument = gql`
     query Repository($name: String!, $owner: String!) {
   repository(name: $name, owner: $owner) {
+    id
+    __typename
     name
     owner {
       login
@@ -25959,6 +25961,8 @@ export type RepositoryQueryResult = Apollo.QueryResult<RepositoryQuery, Reposito
 export const IssuesDocument = gql`
     query Issues($name: String!, $owner: String!, $last: Int, $first: Int, $states: [IssueState!], $before: String, $after: String) {
   repository(name: $name, owner: $owner) {
+    id
+    __typename
     issues(
       last: $last
       first: $first
@@ -26029,6 +26033,8 @@ export type IssuesQueryResult = Apollo.QueryResult<IssuesQuery, IssuesQueryVaria
 export const CommentsDocument = gql`
     query Comments($name: String!, $owner: String!, $first: Int, $number: Int!, $last: Int, $before: String, $after: String) {
   repository(name: $name, owner: $owner) {
+    id
+    __typename
     issue(number: $number) {
       state
       body

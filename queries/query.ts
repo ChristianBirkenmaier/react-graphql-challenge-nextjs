@@ -3,6 +3,8 @@ import { gql } from "@apollo/client";
 export const QUERY_REPOSITORY = gql`
   query Repository($name: String!, $owner: String!) {
     repository(name: $name, owner: $owner) {
+      id
+      __typename
       name
       owner {
         login
@@ -24,6 +26,8 @@ export const QUERY_ISSUES = gql`
     $after: String
   ) {
     repository(name: $name, owner: $owner) {
+      id
+      __typename
       issues(
         last: $last
         first: $first
@@ -69,6 +73,8 @@ export const QUERY_COMMENTS = gql`
     $after: String
   ) {
     repository(name: $name, owner: $owner) {
+      id
+      __typename
       issue(number: $number) {
         state
         body
