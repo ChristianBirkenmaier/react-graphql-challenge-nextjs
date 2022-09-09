@@ -5,6 +5,8 @@ To use graphql codegen, export your github access token into your env. To do thi
 export GITHUB_ACCESS_TOKEN=<your token>
 ```
 
+In order to run tests, rename `cypress.env.json.template` to `cypress.env.json` and add your valid githubb access token.
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

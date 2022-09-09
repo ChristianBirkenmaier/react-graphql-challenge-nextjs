@@ -55,12 +55,14 @@ const Home: NextPage = () => {
           <Input
             type="text"
             placeholder="Repository name"
+            name="repository-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
 
           <Input
             type="text"
+            name="repository-owner"
             placeholder="Repository owner"
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
