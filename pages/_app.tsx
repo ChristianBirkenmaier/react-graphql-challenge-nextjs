@@ -9,18 +9,10 @@ import {
 import { GRAPHQL_URI } from "@config/constants";
 import { setContext } from "@apollo/client/link/context";
 import Navlink from "next/link";
-import { useEffect, useState } from "react";
-import {
-  Button,
-  ChakraProvider,
-  Link,
-  FormControl,
-  Grid,
-  Input,
-  Stack,
-  Divider,
-} from "@chakra-ui/react";
+import { useState } from "react";
+import { ChakraProvider, Link, Stack, Divider } from "@chakra-ui/react";
 import theme from "@styles/theme";
+import { CredentialsProvider } from "@provider/credentials";
 
 const createClient = (token: string) => {
   const httpLink = createHttpLink({
@@ -47,26 +39,10 @@ const createClient = (token: string) => {
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [token, setToken] = useState<string | undefined>(undefined);
-  const [isSubmitted, setSubmitted] = useState<boolean>(false);
-  const [hasLookedForItem, setHasLookedForItem] = useState(false);
-  useEffect(() => {
-    const token = localStorage.getItem("github_token");
-    setHasLookedForItem(true);
-    if (!token) return;
-    setToken(token);
-    setSubmitted(true);
-  }, []);
-  if (!hasLookedForItem) return null;
 
   return (
     <ChakraProvider theme={theme}>
-      {!token || (token && !isSubmitted) ? (
-        <GetCredentials
-          setSubmitted={setSubmitted}
-          setToken={setToken}
-          token={token}
-        />
-      ) : (
+      <CredentialsProvider setToken={setToken} token={token}>
         <ApolloProvider client={createClient(token!)}>
           <Stack direction={"row"} spacing={4}>
             <Navlink href="/">
@@ -87,40 +63,8 @@ function MyApp({ Component, pageProps }: AppProps) {
           <Divider mb="1rem" />
           <Component {...pageProps} />
         </ApolloProvider>
-      )}
+      </CredentialsProvider>
     </ChakraProvider>
-  );
-}
-
-function GetCredentials({
-  setToken,
-  setSubmitted,
-  token,
-}: {
-  setToken: any;
-  setSubmitted: any;
-  token: string | undefined;
-}) {
-  return (
-    <Grid>
-      <FormControl>
-        <Input
-          type="text"
-          placeholder="Enter github token"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-        />
-        <Button
-          disabled={!token}
-          onClick={() => {
-            localStorage.setItem("github_token", token!);
-            setSubmitted(true);
-          }}
-        >
-          Submit
-        </Button>
-      </FormControl>
-    </Grid>
   );
 }
 

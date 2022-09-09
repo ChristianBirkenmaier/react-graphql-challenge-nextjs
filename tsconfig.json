@@ -22,7 +22,8 @@
       "@types": ["types"],
       "@utils": ["utils"],
       "@styles/*": ["styles/*"],
-      "@generated/*": ["generated/*"]
+      "@generated/*": ["generated/*"],
+      "@provider/*": ["provider/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
