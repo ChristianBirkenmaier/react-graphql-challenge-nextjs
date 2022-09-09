@@ -90,7 +90,7 @@ const Home: NextPage = () => {
               <Link
                 href={`/repository?name=${repository?.name}&owner=${repository?.owner.login}`}
               >
-                <Button>Show more</Button>
+                <Button name="show-more">Show more</Button>
               </Link>
             </Box>
           ))}

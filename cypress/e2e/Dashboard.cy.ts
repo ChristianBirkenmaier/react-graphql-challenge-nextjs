@@ -1,9 +1,3 @@
-// describe("Application", () => {
-//   it("renders", () => {
-//     cy.visit(Cypress.env("PAGE_URL"));
-//   });
-// });
-
 before(() => {
   const token = Cypress.env("GITHUB_ACCESS_TOKEN");
   cy.visit(Cypress.env("PAGE_URL"));
@@ -39,5 +33,9 @@ describe("Dashboard", () => {
     cy.reload();
     cy.get("h2").should("contain.text", "react");
     cy.contains("Owner: facebook");
+  });
+  it("navigates to issue page", () => {
+    cy.get('button[name="show-more"]').click();
+    cy.get("h2").should("contain.text", "react - facebook");
   });
 });

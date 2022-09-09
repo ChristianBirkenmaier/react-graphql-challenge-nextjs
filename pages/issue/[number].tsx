@@ -81,12 +81,12 @@ const IssuePage: NextPage = () => {
         )}
         {loading && <Spinner />}
         <Box>
-          <Heading>{data?.repository?.issue?.title}</Heading>
+          <Heading id="comment-title">{data?.repository?.issue?.title}</Heading>
           <Text fontSize="sm">By {data?.repository?.issue?.author?.login}</Text>
           <Divider mb="0.5rem" />
-          <Text>{data?.repository?.issue?.body}</Text>
+          <Text id="comment-body">{data?.repository?.issue?.body}</Text>
           <Text>{data?.repository?.issue?.comments.totalCount}</Text>
-          <UnorderedList>
+          <UnorderedList id="comment-list">
             {memoComments?.map((node) => (
               <ListItem key={node?.id}>
                 <Text>{node?.body}</Text>

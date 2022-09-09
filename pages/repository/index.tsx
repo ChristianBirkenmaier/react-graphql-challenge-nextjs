@@ -115,29 +115,31 @@ const RepositoryPage: NextPage = () => {
       {error && <FetchErrorAlert />}
       {data && (
         <Box mx="1rem">
-          <Text>#Issues: {totalCount}</Text>
-          {memoIssues?.map((node) => {
-            if (!node) return null;
-            const { comments, title, number, author, body } = node;
-            return (
-              <Box key={number} my="2rem">
-                <Flex>
-                  <Text fontWeight="bold">{title}</Text>
-                  <Text>{`(${comments.totalCount})`}</Text>
-                </Flex>
-                <Text fontSize="sm">By {author?.login}</Text>
-                <Divider mb="0.5rem" />
-                <Text>
-                  {getBody({ text: body, maxLength: 200 })}{" "}
-                  <Link href={`/issue/${number}?name=${name}&owner=${owner}`}>
-                    <Button ml="0.5rem" size="xs">
-                      Show more
-                    </Button>
-                  </Link>
-                </Text>
-              </Box>
-            );
-          })}
+          <Text id="issue-count">#Issues: {totalCount}</Text>
+          <Box id="issue-list">
+            {memoIssues?.map((node) => {
+              if (!node) return null;
+              const { comments, title, number, author, body } = node;
+              return (
+                <Box key={number} my="2rem">
+                  <Flex>
+                    <Text fontWeight="bold">{title}</Text>
+                    <Text>{`(${comments.totalCount})`}</Text>
+                  </Flex>
+                  <Text fontSize="sm">By {author?.login}</Text>
+                  <Divider mb="0.5rem" />
+                  <Text>
+                    {getBody({ text: body, maxLength: 200 })}{" "}
+                    <Link href={`/issue/${number}?name=${name}&owner=${owner}`}>
+                      <Button ml="0.5rem" size="xs">
+                        Show more
+                      </Button>
+                    </Link>
+                  </Text>
+                </Box>
+              );
+            })}
+          </Box>
           <Button disabled={!pageInfo?.hasNextPage} onClick={fetchAfter}>
             Previous Page
           </Button>
