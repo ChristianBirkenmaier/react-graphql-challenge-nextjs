@@ -72,7 +72,7 @@ const Home: NextPage = () => {
           </Button>
         </FormControl>
         {error && <p>Error while fetching ...</p>}
-        <Grid gap={6}>
+        <Grid templateColumns="repeat(3,1fr)" gap={6}>
           {repositories.map((repository: any) => (
             <Box
               key={repository.name}
