@@ -15,7 +15,7 @@ import Head from "next/head";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { RepositoryQuery, useRepositoryLazyQuery } from "../generated/graphql";
-import { loadFromLocalStorage, saveToLocalStorage } from "../utils";
+import { loadFromLocalStorage, saveToLocalStorage } from "@utils";
 
 const Home: NextPage = () => {
   const [name, setName] = useState<string>("react");

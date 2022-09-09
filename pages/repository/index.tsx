@@ -1,14 +1,9 @@
 import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
   Box,
   Button,
   Divider,
   Flex,
   FormControl,
-  FormHelperText,
   Grid,
   Heading,
   Input,
@@ -22,22 +17,14 @@ import { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
-import {
-  IssueState,
-  useIssuesLazyQuery,
-  useIssuesQuery,
-} from "../../generated/graphql";
-
-type Pagination = {
-  after?: String | null;
-  before?: String | null;
-  first?: Number;
-  last?: Number;
-};
+import { useMemo, useState } from "react";
+import { FetchErrorAlert } from "@components/ui/CustomAlert";
+import { useIssuesQuery } from "@generated/graphql";
+import { Pagination } from "@types";
+import { mapStateToQuery } from "@utils";
+import { NUMBER_OF_ITEMS_TO_FETCH } from "@config/constants";
 
 const RepositoryPage: NextPage = () => {
-  const [amount, setAmount] = useState<number>(5);
   const [search, setSearch] = useState<string>("");
   const [filterState, setFilterState] = useState("1");
   const [pagination, setPagination] = useState<Pagination>({});
@@ -55,7 +42,7 @@ const RepositoryPage: NextPage = () => {
   } = useIssuesQuery({
     variables: {
       // @ts-ignore
-      last: amount,
+      last: NUMBER_OF_ITEMS_TO_FETCH,
       name,
       owner,
       states: mapStateToQuery(filterState),
@@ -72,8 +59,8 @@ const RepositoryPage: NextPage = () => {
           if (!edge?.node) return false;
           if (!search) return true;
           if (
-            edge.node.body.includes(search) ||
-            edge.node.title.includes(search)
+            edge.node.body.toLowerCase().includes(search.toLowerCase()) ||
+            edge.node.title.toLowerCase().includes(search.toLowerCase())
           )
             return true;
           return false;
@@ -85,37 +72,18 @@ const RepositoryPage: NextPage = () => {
   const fetchBefore = () => {
     setPagination({
       first: undefined,
-      last: amount,
+      last: NUMBER_OF_ITEMS_TO_FETCH,
       after: undefined,
       before: pageInfo?.startCursor,
     });
-    // loadIssueData({
-    //   name,
-    //   first: undefined,
-    //   last: amount,
-    //   owner,
-    //   states: mapStateToQuery(filterState),
-    //   after: undefined,
-    //   before: pageInfo?.startCursor,
-    // });
   };
   const fetchAfter = () => {
     setPagination({
-      first: amount,
+      first: NUMBER_OF_ITEMS_TO_FETCH,
       last: undefined,
       after: pageInfo?.endCursor,
       before: undefined,
     });
-
-    // loadIssueData({
-    //   name,
-    //   first: amount,
-    //   last: undefined,
-    //   owner,
-    //   states: mapStateToQuery(filterState),
-    //   after: pageInfo?.endCursor,
-    //   before: undefined,
-    // });
   };
 
   return (
@@ -125,34 +93,32 @@ const RepositoryPage: NextPage = () => {
       </Head>
       <Heading size="md">{`${name} - ${owner}`}</Heading>
       <Divider my="1rem" />
-      <FormControl>
+      <FormControl display="flex" flexDirection={["column", "row"]}>
         <Input
-          type="number"
-          placeholder="First"
-          value={amount}
-          disabled
-          onChange={(e) => setAmount(Number(e.target.value))}
+          type="text"
+          placeholder="Filter search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          mr={[null, "1rem"]}
         />
-        <FormHelperText mb="1rem"># Issues</FormHelperText>
-
-        <RadioGroup onChange={setFilterState} value={filterState}>
+        <RadioGroup
+          onChange={setFilterState}
+          value={filterState}
+          display="flex"
+          justifyContent="space-around"
+          alignItems="center"
+          my={["1rem", "inherit"]}
+        >
           <Stack direction="row">
             <Radio value="1">ALL</Radio>
             <Radio value="2">OPEN</Radio>
             <Radio value="3">CLOSED</Radio>
           </Stack>
         </RadioGroup>
-        <FormHelperText mb="1rem">Open / Closed</FormHelperText>
-        <Input
-          type="text"
-          placeholder="Filter search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
       </FormControl>
       <Divider m="1rem" />
       {loading && <Spinner />}
-      {error && <CustomAlert />}
+      {error && <FetchErrorAlert />}
       {data && (
         <Box mx="1rem">
           <Text>#Issues: {totalCount}</Text>
@@ -189,31 +155,6 @@ const RepositoryPage: NextPage = () => {
     </Grid>
   );
 };
-
-function CustomAlert() {
-  return (
-    <Alert status="error">
-      <AlertIcon />
-      <AlertTitle>Error!</AlertTitle>
-      <AlertDescription>
-        An error occured while fetching your data, sorry :(
-      </AlertDescription>
-    </Alert>
-  );
-}
-
-function mapStateToQuery(filterState: string) {
-  switch (filterState) {
-    case "1":
-      return undefined;
-    case "2":
-      return IssueState.Open;
-    case "3":
-      return IssueState.Closed;
-    default:
-      break;
-  }
-}
 
 function getBody({ text, maxLength }: { text: string; maxLength: number }) {
   if (text.length <= maxLength) return text;

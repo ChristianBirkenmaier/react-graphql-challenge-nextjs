@@ -18,9 +18,8 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
-import { useCommentsQuery } from "../../generated/graphql";
-
-const amount = 5;
+import { useCommentsQuery } from "@generated/graphql";
+import { NUMBER_OF_ITEMS_TO_FETCH } from "@config/constants";
 
 const IssuePage: NextPage = () => {
   const router = useRouter();
@@ -28,14 +27,14 @@ const IssuePage: NextPage = () => {
   const owner = router.query.owner as string;
   const number = Number(router.query.number);
   const { data, error, loading, refetch } = useCommentsQuery({
-    variables: { first: amount, name, owner, number },
+    variables: { first: NUMBER_OF_ITEMS_TO_FETCH, name, owner, number },
   });
 
   const fetchBefore = () => {
     refetch({
       name,
       first: undefined,
-      last: amount,
+      last: NUMBER_OF_ITEMS_TO_FETCH,
       owner,
       after: undefined,
       before: data?.repository?.issue?.comments.pageInfo.startCursor,
@@ -44,7 +43,7 @@ const IssuePage: NextPage = () => {
   const fetchAfter = () => {
     refetch({
       name,
-      first: amount,
+      first: NUMBER_OF_ITEMS_TO_FETCH,
       last: undefined,
       owner,
       after: data?.repository?.issue?.comments.pageInfo.endCursor,

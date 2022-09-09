@@ -1,4 +1,4 @@
-import { RepositoryQuery } from "../generated/graphql";
+import { IssueState, RepositoryQuery } from "../generated/graphql";
 
 export const saveToLocalStorage = (
   data: NonNullable<RepositoryQuery["repository"]>[]
@@ -10,3 +10,16 @@ export const loadFromLocalStorage = ():
   const stringifiedRepositories = localStorage.getItem("localRepositories");
   return stringifiedRepositories ? JSON.parse(stringifiedRepositories) : [];
 };
+
+export function mapStateToQuery(filterState: string) {
+  switch (filterState) {
+    case "1":
+      return undefined;
+    case "2":
+      return IssueState.Open;
+    case "3":
+      return IssueState.Closed;
+    default:
+      break;
+  }
+}

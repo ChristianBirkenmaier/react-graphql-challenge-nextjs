@@ -6,14 +6,13 @@ import {
   createHttpLink,
   InMemoryCache,
 } from "@apollo/client";
-import { GRAPHQL_URI } from "../config/constants";
+import { GRAPHQL_URI } from "@config/constants";
 import { setContext } from "@apollo/client/link/context";
 import Navlink from "next/link";
 import { useEffect, useState } from "react";
 import {
   Button,
   ChakraProvider,
-  Flex,
   Link,
   FormControl,
   Grid,
@@ -21,7 +20,7 @@ import {
   Stack,
   Divider,
 } from "@chakra-ui/react";
-import theme from "../styles/theme";
+import theme from "@styles/theme";
 
 const createClient = (token: string) => {
   const httpLink = createHttpLink({
