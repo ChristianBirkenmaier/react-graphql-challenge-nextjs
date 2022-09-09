@@ -37,11 +37,11 @@ const Home: NextPage = () => {
     );
     const mergedRepositories = [...filteredRepositories, data.repository];
     setRepositories(mergedRepositories);
-    saveToLocalStorage(mergedRepositories);
+    // saveToLocalStorage(mergedRepositories);
   }, [data]);
-  useEffect(() => {
-    setRepositories(loadFromLocalStorage());
-  }, []);
+  // useEffect(() => {
+  //   setRepositories(loadFromLocalStorage());
+  // }, []);
   return (
     <>
       <Head>
