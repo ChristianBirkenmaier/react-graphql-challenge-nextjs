@@ -5346,6 +5346,22 @@ export enum EnterpriseAdministratorRole {
   Owner = 'OWNER'
 }
 
+/** The possible values for the enterprise allow private repository forking policy value. */
+export enum EnterpriseAllowPrivateRepositoryForkingPolicyValue {
+  /** Members can fork a repository to an organization within this enterprise. */
+  EnterpriseOrganizations = 'ENTERPRISE_ORGANIZATIONS',
+  /** Members can fork a repository to their enterprise-managed user account or an organization inside this enterprise. */
+  EnterpriseOrganizationsUserAccounts = 'ENTERPRISE_ORGANIZATIONS_USER_ACCOUNTS',
+  /** Members can fork a repository to their user account or an organization, either inside or outside of this enterprise. */
+  Everywhere = 'EVERYWHERE',
+  /** Members can fork a repository only within the same organization (intra-org). */
+  SameOrganization = 'SAME_ORGANIZATION',
+  /** Members can fork a repository to their user account or within the same organization. */
+  SameOrganizationUserAccounts = 'SAME_ORGANIZATION_USER_ACCOUNTS',
+  /** Members can fork a repository to their user account. */
+  UserAccounts = 'USER_ACCOUNTS'
+}
+
 /** Metadata for an audit entry containing enterprise account information. */
 export type EnterpriseAuditEntryData = {
   /** The HTTP path for this enterprise. */
@@ -5581,6 +5597,8 @@ export type EnterpriseOwnerInfo = {
   allowPrivateRepositoryForkingSetting: EnterpriseEnabledDisabledSettingValue;
   /** A list of enterprise organizations configured with the provided private repository forking setting value. */
   allowPrivateRepositoryForkingSettingOrganizations: OrganizationConnection;
+  /** The value for the allow private repository forking policy on the enterprise. */
+  allowPrivateRepositoryForkingSettingPolicyValue?: Maybe<EnterpriseAllowPrivateRepositoryForkingPolicyValue>;
   /** The setting value for base repository permissions for organizations in this enterprise. */
   defaultRepositoryPermissionSetting: EnterpriseDefaultRepositoryPermissionSettingValue;
   /** A list of enterprise organizations configured with the provided base repository permission. */
@@ -23733,6 +23751,8 @@ export type UpdateEnterpriseAllowPrivateRepositoryForkingSettingInput = {
   clientMutationId?: InputMaybe<Scalars['String']>;
   /** The ID of the enterprise on which to set the allow private repository forking setting. */
   enterpriseId: Scalars['ID'];
+  /** The value for the allow private repository forking policy on the enterprise. */
+  policyValue?: InputMaybe<EnterpriseAllowPrivateRepositoryForkingPolicyValue>;
   /** The value for the allow private repository forking setting on the enterprise. */
   settingValue: EnterpriseEnabledDisabledSettingValue;
 };
@@ -25898,7 +25918,7 @@ export type IssuesQueryVariables = Exact<{
 }>;
 
 
-export type IssuesQuery = { __typename?: 'Query', repository?: { __typename: 'Repository', id: string, issues: { __typename?: 'IssueConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, edges?: Array<{ __typename?: 'IssueEdge', cursor: string, node?: { __typename?: 'Issue', state: IssueState, body: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', totalCount: number } } | null } | null> | null } } | null };
+export type IssuesQuery = { __typename?: 'Query', repository?: { __typename: 'Repository', id: string, issues: { __typename?: 'IssueConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename?: 'Issue', state: IssueState, body: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', totalCount: number } } | null> | null } } | null };
 
 export type CommentsQueryVariables = Exact<{
   name: Scalars['String'];
@@ -25977,19 +25997,16 @@ export const IssuesDocument = gql`
         startCursor
       }
       totalCount
-      edges {
-        cursor
-        node {
-          author {
-            login
-          }
-          state
-          body
-          title
-          number
-          comments {
-            totalCount
-          }
+      nodes {
+        author {
+          login
+        }
+        state
+        body
+        title
+        number
+        comments {
+          totalCount
         }
       }
     }

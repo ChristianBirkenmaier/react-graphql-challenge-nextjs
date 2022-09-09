@@ -50,23 +50,23 @@ const RepositoryPage: NextPage = () => {
     },
   });
 
-  const { totalCount, pageInfo, edges } = data?.repository?.issues || {};
+  const { totalCount, pageInfo, nodes } = data?.repository?.issues || {};
 
   const memoIssues = useMemo(
     () =>
-      edges
-        ?.filter((edge) => {
-          if (!edge?.node) return false;
+      nodes
+        ?.filter((node) => {
+          if (!node) return false;
           if (!search) return true;
           if (
-            edge.node.body.toLowerCase().includes(search.toLowerCase()) ||
-            edge.node.title.toLowerCase().includes(search.toLowerCase())
+            node.body.toLowerCase().includes(search.toLowerCase()) ||
+            node.title.toLowerCase().includes(search.toLowerCase())
           )
             return true;
           return false;
         })
         .reverse(),
-    [search, edges]
+    [search, nodes]
   );
 
   const fetchBefore = () => {
@@ -122,9 +122,9 @@ const RepositoryPage: NextPage = () => {
       {data && (
         <Box mx="1rem">
           <Text>#Issues: {totalCount}</Text>
-          {memoIssues?.map((edge) => {
-            if (!edge?.node) return null;
-            const { comments, title, number, author, body } = edge.node;
+          {memoIssues?.map((node) => {
+            if (!node) return null;
+            const { comments, title, number, author, body } = node;
             return (
               <Box key={number} my="2rem">
                 <Flex>

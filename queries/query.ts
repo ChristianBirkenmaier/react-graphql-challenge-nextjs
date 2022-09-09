@@ -42,19 +42,16 @@ export const QUERY_ISSUES = gql`
           startCursor
         }
         totalCount
-        edges {
-          cursor
-          node {
-            author {
-              login
-            }
-            state
-            body
-            title
-            number
-            comments {
-              totalCount
-            }
+        nodes {
+          author {
+            login
+          }
+          state
+          body
+          title
+          number
+          comments {
+            totalCount
           }
         }
       }
