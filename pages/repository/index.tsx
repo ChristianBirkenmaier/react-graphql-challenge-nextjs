@@ -34,12 +34,7 @@ const RepositoryPage: NextPage = () => {
   const name = router.query.name as string;
   const owner = router.query.owner as string;
 
-  const {
-    data,
-    loading,
-    error,
-    refetch: loadIssueData,
-  } = useIssuesQuery({
+  const { data, loading, error } = useIssuesQuery({
     variables: {
       // @ts-ignore
       last: NUMBER_OF_ITEMS_TO_FETCH,
@@ -63,7 +58,6 @@ const RepositoryPage: NextPage = () => {
             node.title.toLowerCase().includes(search.toLowerCase())
           )
             return true;
-          return false;
         })
         .reverse(),
     [search, nodes]
