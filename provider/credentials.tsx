@@ -50,6 +50,7 @@ export function CredentialsProvider({
             <FormControl>
               <Input
                 type="text"
+                name="token-input"
                 placeholder="Enter github token"
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
@@ -62,6 +63,7 @@ export function CredentialsProvider({
 
           <ModalFooter>
             <Button
+              name="token-submit"
               disabled={!token}
               onClick={() => {
                 localStorage.setItem("github_token", token!);

@@ -131,7 +131,7 @@ const RepositoryPage: NextPage = () => {
                   <Text>
                     {getBody({ text: body, maxLength: 200 })}{" "}
                     <Link href={`/issue/${number}?name=${name}&owner=${owner}`}>
-                      <Button ml="0.5rem" size="xs">
+                      <Button ml="0.5rem" size="xs" name="show-more">
                         Show more
                       </Button>
                     </Link>

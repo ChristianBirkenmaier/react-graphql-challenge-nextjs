@@ -2,11 +2,9 @@ before(() => {
   const token = Cypress.env("GITHUB_ACCESS_TOKEN");
   cy.visit(Cypress.env("PAGE_URL"));
 
-  cy.get("input").should("be.visible");
+  cy.get('input[name="token-input"]').type(token);
 
-  cy.get("input").type(token);
-
-  cy.get("button").click();
+  cy.get('button[name="token-submit"]').click();
 });
 
 beforeEach(() => {
