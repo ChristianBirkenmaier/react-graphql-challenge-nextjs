@@ -8,11 +8,11 @@ import {
 } from "@apollo/client";
 import { GRAPHQL_URI } from "@config/constants";
 import { setContext } from "@apollo/client/link/context";
-import Navlink from "next/link";
 import { useState } from "react";
-import { ChakraProvider, Link, Stack, Divider } from "@chakra-ui/react";
+import { ChakraProvider } from "@chakra-ui/react";
 import theme from "@styles/theme";
 import { CredentialsProvider } from "@provider/credentials";
+import { Header } from "@components/header";
 
 const createClient = (token: string) => {
   const httpLink = createHttpLink({
@@ -44,23 +44,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <ChakraProvider theme={theme}>
       <CredentialsProvider setToken={setToken} token={token}>
         <ApolloProvider client={createClient(token!)}>
-          <Stack direction={"row"} spacing={4}>
-            <Navlink href="/">
-              <Link
-                p={2}
-                fontSize="lg"
-                fontWeight={500}
-                color="gray.600"
-                _hover={{
-                  textDecoration: "none",
-                  color: "gray.800",
-                }}
-              >
-                Repositories
-              </Link>
-            </Navlink>
-          </Stack>
-          <Divider mb="1rem" />
+          <Header />
           <Component {...pageProps} />
         </ApolloProvider>
       </CredentialsProvider>
