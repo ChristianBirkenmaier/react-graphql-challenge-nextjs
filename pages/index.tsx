@@ -73,7 +73,7 @@ const Home: NextPage = () => {
         </FormControl>
         {error && <p>Error while fetching ...</p>}
         <Grid gap={6}>
-          {repositories?.map((repository: any) => (
+          {repositories.map((repository: any) => (
             <Box
               key={repository.name}
               maxW="sm"
