@@ -1,16 +1,12 @@
 import { RepositoryQuery } from "../generated/graphql";
 
-export const saveToLocalStorage = (data: RepositoryQuery) => {
-  if (!data.repository) return;
-  const stringifiedRepositories = localStorage.getItem("localRepositories");
-  const localRepositories = stringifiedRepositories
-    ? JSON.parse(stringifiedRepositories)
-    : {};
-  localRepositories[data.repository.name] = data.repository;
-  localStorage.setItem("localRepositories", JSON.stringify(localRepositories));
+export const saveToLocalStorage = (
+  data: NonNullable<RepositoryQuery["repository"]>[]
+) => {
+  return localStorage.setItem("localRepositories", JSON.stringify(data));
 };
-export const loadFromLocalStorage = () => {
+export const loadFromLocalStorage = ():
+  | NonNullable<RepositoryQuery["repository"]>[] => {
   const stringifiedRepositories = localStorage.getItem("localRepositories");
-  if (!stringifiedRepositories) return null;
-  return JSON.parse(stringifiedRepositories);
+  return stringifiedRepositories ? JSON.parse(stringifiedRepositories) : [];
 };

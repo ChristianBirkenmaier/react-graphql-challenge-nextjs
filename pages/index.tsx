@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Divider,
-  Flex,
   FormControl,
   FormLabel,
   Grid,
@@ -15,38 +14,40 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { useRepositoryLazyQuery } from "../generated/graphql";
+import { RepositoryQuery, useRepositoryLazyQuery } from "../generated/graphql";
 import { loadFromLocalStorage, saveToLocalStorage } from "../utils";
 
 const Home: NextPage = () => {
   const [name, setName] = useState<string>("react");
   const [owner, setOwner] = useState<string>("facebook");
-  const [repositories, setRepositories] = useState<object>();
+  const [repositories, setRepositories] = useState<
+    NonNullable<RepositoryQuery["repository"]>[] | []
+  >([]);
 
-  const [loadRepositories, { data, error, loading }] = useRepositoryLazyQuery({
-    variables: { name, owner },
-  });
+  const [loadRepositories, { data, error, loading }] = useRepositoryLazyQuery();
   const handleLoad = (e: React.MouseEvent) => {
     e.preventDefault();
     loadRepositories({ variables: { name, owner } });
   };
 
   useEffect(() => {
-    if (!data?.repository?.name) return;
-    const name = data.repository.name;
-    setRepositories((prevRepos) => ({ ...prevRepos, [name]: data.repository }));
-    saveToLocalStorage(data);
+    if (!data?.repository) return;
+    const filteredRepositories = repositories.filter(
+      (repo) => repo.name !== data.repository?.name
+    );
+    const mergedRepositories = [...filteredRepositories, data.repository];
+    setRepositories(mergedRepositories);
+    saveToLocalStorage(mergedRepositories);
   }, [data]);
   useEffect(() => {
-    const localRepositories = loadFromLocalStorage();
-    setRepositories(localRepositories);
+    setRepositories(loadFromLocalStorage());
   }, []);
   return (
     <>
       <Head>
         <title>Repositories</title>
       </Head>
-      <Grid>
+      <Box>
         <FormControl>
           <FormLabel>
             Enter the repository name and owner you want to search for
@@ -69,31 +70,30 @@ const Home: NextPage = () => {
           </Button>
         </FormControl>
         {error && <p>Error while fetching ...</p>}
-        <Flex>
-          {repositories &&
-            Object.values(repositories).map((repository: any) => (
-              <Box
-                key={repository.name}
-                maxW="sm"
-                borderWidth="1px"
-                borderRadius="lg"
-                overflow="hidden"
-                padding="1rem"
-                margin="1rem"
+        <Grid templateColumns="repeat(3,1fr)" gap={6}>
+          {repositories.map((repository: any) => (
+            <Box
+              key={repository.name}
+              maxW="sm"
+              borderWidth="1px"
+              borderRadius="lg"
+              overflow="hidden"
+              padding="1rem"
+              margin="1rem"
+            >
+              <Heading size="md">{repository?.name}</Heading>
+              <Divider />
+              <Text>Owner: {repository?.owner.login}</Text>
+              <Text>Issues: {repository?.issues.totalCount}</Text>
+              <Link
+                href={`/repository?name=${repository?.name}&owner=${repository?.owner.login}`}
               >
-                <Heading size="md">{repository?.name}</Heading>
-                <Divider />
-                <Text>Owner: {repository?.owner.login}</Text>
-                <Text>Issues: {repository?.issues.totalCount}</Text>
-                <Link
-                  href={`/repository?name=${repository?.name}&owner=${repository?.owner.login}`}
-                >
-                  <Button>Show more</Button>
-                </Link>
-              </Box>
-            ))}
-        </Flex>
-      </Grid>
+                <Button>Show more</Button>
+              </Link>
+            </Box>
+          ))}
+        </Grid>
+      </Box>
     </>
   );
 };
