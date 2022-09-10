@@ -25,7 +25,7 @@ describe("Dashboard", () => {
       .should("contain.value", "facebook");
   });
   it("fetches data and saves and load it from localStorage", () => {
-    cy.get("button").click();
+    cy.get("#load-repositories").click();
     cy.get("h2").should("contain.text", "react");
     cy.contains("Owner: facebook");
     cy.reload();

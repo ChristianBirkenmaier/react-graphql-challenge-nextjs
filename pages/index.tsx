@@ -67,7 +67,7 @@ const Home: NextPage = () => {
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
           />
-          <Button onClick={handleLoad}>
+          <Button id="load-repositories" onClick={handleLoad}>
             {loading ? <Spinner /> : "Search"}
           </Button>
         </FormControl>
