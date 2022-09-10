@@ -1,4 +1,4 @@
-before(() => {
+beforeEach(() => {
   const token = Cypress.env("GITHUB_ACCESS_TOKEN");
   cy.visit(Cypress.env("PAGE_URL"));
 

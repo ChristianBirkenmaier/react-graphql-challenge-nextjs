@@ -60,7 +60,6 @@ const IssuePage: NextPage = () => {
     [data]
   );
 
-  console.log({ data, error, loading });
   return (
     <>
       <Head>

@@ -1,3 +1,4 @@
+import { GITHUB_VALIDATION_URL } from "@config/constants";
 import { IssueState, RepositoryQuery } from "../generated/graphql";
 
 export const saveToLocalStorage = (
@@ -21,5 +22,19 @@ export function mapStateToQuery(filterState: string) {
       return IssueState.Closed;
     default:
       break;
+  }
+}
+
+export async function verifyToken(token: string) {
+  // @ts-ignore
+  if (window.Cypress) return true;
+  try {
+    const response = await fetch(GITHUB_VALIDATION_URL, {
+      headers: { Authorization: `token ${token}` },
+    });
+    return !!response.ok;
+  } catch (err) {
+    console.error(err);
+    return false;
   }
 }

@@ -1,4 +1,11 @@
 import {
+  createHttpLink,
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+} from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
+import {
   Grid,
   FormControl,
   Input,
@@ -13,31 +20,69 @@ import {
   useDisclosure,
   Text,
   FormHelperText,
+  FormErrorMessage,
 } from "@chakra-ui/react";
+import { GRAPHQL_URI } from "@config/constants";
+import { verifyToken } from "@utils";
 import { useEffect, useState } from "react";
 
+const createClient = (token: string) => {
+  const httpLink = createHttpLink({
+    uri: GRAPHQL_URI,
+  });
+  const authLink = setContext((_, { headers }) => {
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : "",
+      },
+    };
+  });
+
+  return new ApolloClient({
+    link: authLink.concat(httpLink),
+    cache: new InMemoryCache(),
+  });
+};
+
 export function CredentialsProvider({
-  setToken,
-  token,
   children,
 }: {
-  setToken: any;
-  token: string | undefined;
   children: React.ReactNode;
 }) {
-  const [isSubmitted, setSubmitted] = useState<boolean>(false);
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const { onClose } = useDisclosure();
+  const [isError, setIsError] = useState(false);
+  const [token, setToken] = useState<string>("");
 
   useEffect(() => {
     const token = localStorage.getItem("github_token");
     if (!token) return;
-    setSubmitted(true);
+    setIsAuthorized(true);
     setToken(token);
   }, []);
 
+  async function handleTokenSubmit() {
+    // return localStorage.setItem("github_token", token);
+    const isValid = await verifyToken(token);
+    if (isValid) {
+      setIsError(false);
+      localStorage.setItem("github_token", token);
+      setIsAuthorized(true);
+    } else {
+      setIsError(true);
+    }
+  }
+
+  function clearCookie() {
+    setToken("");
+    setIsAuthorized(false);
+    localStorage.removeItem("github_token");
+  }
+
   return (
     <Grid>
-      <Modal isOpen={!token || (!!token && !isSubmitted)} onClose={onClose}>
+      <Modal isOpen={!isAuthorized} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Github Access Token</ModalHeader>
@@ -47,7 +92,7 @@ export function CredentialsProvider({
               Please enter a valid github access token to proceed to the
               application.
             </Text>
-            <FormControl>
+            <FormControl isInvalid={isError}>
               <Input
                 type="text"
                 name="token-input"
@@ -55,9 +100,13 @@ export function CredentialsProvider({
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
               />
-              <FormHelperText>
-                The token needs repository access rights.
-              </FormHelperText>
+              {!isError ? (
+                <FormHelperText>
+                  The token needs repository access rights.
+                </FormHelperText>
+              ) : (
+                <FormErrorMessage>Invalid access token.</FormErrorMessage>
+              )}
             </FormControl>
           </ModalBody>
 
@@ -65,17 +114,21 @@ export function CredentialsProvider({
             <Button
               name="token-submit"
               disabled={!token}
-              onClick={() => {
-                localStorage.setItem("github_token", token!);
-                setSubmitted(true);
-              }}
+              onClick={handleTokenSubmit}
             >
               Submit
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-      <>{children}</>
+      {isAuthorized && (
+        <ApolloProvider client={createClient(token!)}>
+          <>{children}</>
+        </ApolloProvider>
+      )}
+      <Button onClick={clearCookie} position="fixed" bottom="10px" left="10px">
+        Clear cookie
+      </Button>
     </Grid>
   );
 }

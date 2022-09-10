@@ -1,18 +1,10 @@
-before(() => {
+beforeEach(() => {
   const token = Cypress.env("GITHUB_ACCESS_TOKEN");
   cy.visit(Cypress.env("PAGE_URL"));
 
   cy.get('input[name="token-input"]').type(token);
 
   cy.get('button[name="token-submit"]').click();
-});
-
-beforeEach(() => {
-  cy.restoreLocalStorage();
-});
-
-afterEach(() => {
-  cy.saveLocalStorage();
 });
 
 describe("Dashboard", () => {
@@ -33,6 +25,7 @@ describe("Dashboard", () => {
     cy.contains("Owner: facebook");
   });
   it("navigates to issue page", () => {
+    cy.get("#load-repositories").click();
     cy.get('button[name="show-more"]').click();
     cy.get("h2").should("contain.text", "react - facebook");
   });
