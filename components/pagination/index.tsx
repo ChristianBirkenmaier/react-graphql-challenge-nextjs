@@ -6,6 +6,19 @@ export function PaginationFooter({
   setPagination,
   totalCount,
   loading,
+}: {
+  pageInfo:
+    | {
+        __typename?: "PageInfo" | undefined;
+        endCursor?: string | null | undefined;
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+        startCursor?: string | null | undefined;
+      }
+    | undefined;
+  setPagination: any;
+  totalCount: number | undefined;
+  loading: boolean;
 }) {
   const fetchFirstPage = () => {
     setPagination({
@@ -36,7 +49,7 @@ export function PaginationFooter({
     });
   };
 
-  if (totalCount <= NUMBER_OF_ITEMS_TO_FETCH) return null;
+  if (!totalCount || totalCount <= NUMBER_OF_ITEMS_TO_FETCH) return null;
 
   return (
     <ButtonGroup my="1rem" variant="outline" isAttached>

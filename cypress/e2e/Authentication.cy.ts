@@ -1,3 +1,4 @@
+// @ts-ignore
 describe("Token form", () => {
   const token = Cypress.env("GITHUB_ACCESS_TOKEN");
 

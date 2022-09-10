@@ -36,7 +36,7 @@ const IssuePage: NextPage = () => {
   const router = useRouter();
   const name = router.query.name as string;
   const owner = router.query.owner as string;
-  const number = Number(router.query.number);
+  const number = parseInt(router.query.number as unknown as string);
   const [pagination, setPagination] = useState<Pagination>({});
 
   const {
@@ -47,6 +47,7 @@ const IssuePage: NextPage = () => {
 
   const { data, error, loading, refetch } = useCommentsQuery({
     variables: {
+      // @ts-ignore
       last: NUMBER_OF_ITEMS_TO_FETCH,
       name,
       owner,
