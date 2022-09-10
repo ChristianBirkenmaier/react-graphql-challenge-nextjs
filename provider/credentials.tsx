@@ -1,3 +1,4 @@
+import { CloseIcon } from "@chakra-ui/icons";
 import {
   createHttpLink,
   ApolloClient,
@@ -63,7 +64,6 @@ export function CredentialsProvider({
   }, []);
 
   async function handleTokenSubmit() {
-    // return localStorage.setItem("github_token", token);
     const isValid = await verifyToken(token);
     if (isValid) {
       setIsError(false);
@@ -126,8 +126,15 @@ export function CredentialsProvider({
           <>{children}</>
         </ApolloProvider>
       )}
-      <Button onClick={clearCookie} position="fixed" bottom="10px" right="10px">
-        Clear cookie
+      <Button
+        bg="red.100"
+        _hover={{ bg: "red" }}
+        onClick={clearCookie}
+        position="fixed"
+        top="10px"
+        right="10px"
+      >
+        <CloseIcon />
       </Button>
     </Grid>
   );

@@ -1,12 +1,5 @@
-import {
-  Button,
-  ButtonGroup,
-  Select,
-  Skeleton,
-  Spinner,
-} from "@chakra-ui/react";
+import { Button, ButtonGroup } from "@chakra-ui/react";
 import { NUMBER_OF_ITEMS_TO_FETCH } from "@config/constants";
-import { useEffect, useState } from "react";
 
 export function PaginationFooter({
   pageInfo,
@@ -42,7 +35,6 @@ export function PaginationFooter({
       before: undefined,
     });
   };
-  console.log(totalCount);
 
   if (totalCount <= NUMBER_OF_ITEMS_TO_FETCH) return null;
 

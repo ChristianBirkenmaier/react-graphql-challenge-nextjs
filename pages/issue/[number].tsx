@@ -1,11 +1,9 @@
-import { ArrowBackIcon } from "@chakra-ui/icons";
-
+import { ArrowBackIcon, InfoIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertDescription,
   AlertIcon,
   AlertTitle,
-  Badge,
   Box,
   Button,
   Divider,
@@ -14,17 +12,22 @@ import {
   ListItem,
   OrderedList,
   Skeleton,
+  SkeletonText,
   Spinner,
+  Stack,
   Tag,
   Text,
-  UnorderedList,
 } from "@chakra-ui/react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
-import { useCommentsQuery, useIssueQuery } from "@generated/graphql";
+import {
+  IssueState,
+  useCommentsQuery,
+  useIssueQuery,
+} from "@generated/graphql";
 import { NUMBER_OF_ITEMS_TO_FETCH } from "@config/constants";
 import { Pagination } from "@types";
 import { PaginationFooter } from "@components/pagination";
@@ -90,25 +93,44 @@ const IssuePage: NextPage = () => {
           <Heading my="0.5rem" id="comment-title">
             {title}{" "}
           </Heading>
-          <Text fontSize="sm" my="0.5rem">
-            By {author?.login}{" "}
+          <Stack direction="row" mb="0.5rem">
+            <InfoIcon
+              alignSelf="center"
+              mr="0.5rem"
+              color={state === IssueState.Open ? "green" : "rebeccapurple"}
+            />
+            <Text my="0.5rem">By {author?.login} </Text>
             <Tag size="sm" variant="solid" colorScheme="teal" mx="0.5rem">
-              {totalCount ? totalCount : "..."} items
+              {totalCount ? (
+                totalCount
+              ) : loading ? (
+                <Spinner mx="0.25rem" size="xs" />
+              ) : (
+                0
+              )}{" "}
+              items
             </Tag>
-          </Text>
+          </Stack>
           <Divider mb="0.5rem" />
           <Skeleton isLoaded={!issueLoading}>
             <Text
               borderWidth="1px"
               borderRadius="5px"
               p="0.5rem"
-              bg="#eee"
               id="comment-body"
             >
               {body}
             </Text>
           </Skeleton>
-          <Skeleton isLoaded={!loading}>
+          {loading ? (
+            <Stack>
+              <SkeletonText mt="5" noOfLines={5} spacing="5" />
+              <SkeletonText mt="5" noOfLines={5} spacing="5" />
+              <SkeletonText mt="5" noOfLines={5} spacing="5" />
+              <SkeletonText mt="5" noOfLines={5} spacing="5" />
+              <SkeletonText mt="5" noOfLines={5} spacing="5" />
+            </Stack>
+          ) : (
             <OrderedList id="comment-list" overflow="auto">
               {memoComments?.map((node) => (
                 <ListItem
@@ -117,14 +139,13 @@ const IssuePage: NextPage = () => {
                   borderWidth="1px"
                   borderRadius="5px"
                   p="0.5rem"
-                  bg="#eee"
                 >
                   <Text>{node?.body}</Text>
                   <Text fontSize="sm">By {node?.author?.login}</Text>
                 </ListItem>
               ))}
             </OrderedList>
-          </Skeleton>
+          )}
           <PaginationFooter
             pageInfo={pageInfo}
             setPagination={setPagination}

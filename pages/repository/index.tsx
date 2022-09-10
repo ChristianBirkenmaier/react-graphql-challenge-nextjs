@@ -1,3 +1,4 @@
+import { InfoIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -9,7 +10,7 @@ import {
   Input,
   Radio,
   RadioGroup,
-  Spinner,
+  SkeletonText,
   Stack,
   Text,
 } from "@chakra-ui/react";
@@ -19,7 +20,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { FetchErrorAlert } from "@components/ui/CustomAlert";
-import { useIssuesQuery } from "@generated/graphql";
+import { IssueState, useIssuesQuery } from "@generated/graphql";
 import { Pagination } from "@types";
 import { PaginationFooter } from "@components/pagination";
 import { mapStateToQuery } from "@utils";
@@ -95,43 +96,69 @@ const RepositoryPage: NextPage = () => {
         </RadioGroup>
       </FormControl>
       <Divider m="1rem" />
-      {loading && <Spinner />}
       {error && <FetchErrorAlert />}
-      {data && (
-        <Box mx="1rem">
-          <Text id="issue-count">#Issues: {totalCount}</Text>
-          <Box id="issue-list">
-            {memoIssues?.map((node) => {
-              if (!node) return null;
-              const { comments, title, number, author, body } = node;
-              return (
-                <Box key={number} my="2rem">
-                  <Flex>
-                    <Text fontWeight="bold">{title}</Text>
-                    <Text>{`(${comments.totalCount})`}</Text>
-                  </Flex>
-                  <Text fontSize="sm">By {author?.login}</Text>
-                  <Divider mb="0.5rem" />
-                  <Text>
-                    {getBody({ text: body, maxLength: 200 })}{" "}
-                    <Link href={`/issue/${number}?name=${name}&owner=${owner}`}>
-                      <Button ml="0.5rem" size="xs" name="show-more">
-                        Show more
-                      </Button>
-                    </Link>
-                  </Text>
-                </Box>
-              );
-            })}
-          </Box>
-          <PaginationFooter
-            pageInfo={pageInfo}
-            setPagination={setPagination}
-            totalCount={totalCount}
-            loading={loading}
-          />
-        </Box>
-      )}
+      <Box mx="1rem">
+        {loading ? (
+          <Stack>
+            <SkeletonText mt="5" noOfLines={5} spacing="5" />
+            <SkeletonText mt="5" noOfLines={5} spacing="5" />
+            <SkeletonText mt="5" noOfLines={5} spacing="5" />
+            <SkeletonText mt="5" noOfLines={5} spacing="5" />
+            <SkeletonText mt="5" noOfLines={5} spacing="5" />
+          </Stack>
+        ) : (
+          <>
+            <Text id="issue-count">#Issues: {totalCount}</Text>
+            <Box id="issue-list">
+              {memoIssues?.map((node) => {
+                if (!node) return null;
+                const { comments, title, number, author, body, state } = node;
+                return (
+                  <Box
+                    key={number}
+                    my="1rem"
+                    borderWidth="1px"
+                    borderRadius="5px"
+                    p="0.5rem"
+                  >
+                    <Flex>
+                      <Text fontWeight="bold">{title}</Text>
+                      <Text>{`(${comments.totalCount})`}</Text>
+                    </Flex>
+                    <Text my="0.5rem">
+                      <InfoIcon
+                        mr="0.5rem"
+                        color={
+                          state === IssueState.Open ? "green" : "rebeccapurple"
+                        }
+                      />{" "}
+                      By {author?.login}
+                    </Text>
+
+                    <Divider mb="0.5rem" />
+                    <Text>
+                      {getBody({ text: body, maxLength: 200 })}{" "}
+                      <Link
+                        href={`/issue/${number}?name=${name}&owner=${owner}`}
+                      >
+                        <Button ml="0.5rem" size="xs" name="show-more">
+                          Show more
+                        </Button>
+                      </Link>
+                    </Text>
+                  </Box>
+                );
+              })}
+            </Box>
+          </>
+        )}
+        <PaginationFooter
+          pageInfo={pageInfo}
+          setPagination={setPagination}
+          totalCount={totalCount}
+          loading={loading}
+        />
+      </Box>
     </Grid>
   );
 };

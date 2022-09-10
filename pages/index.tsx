@@ -4,9 +4,9 @@ import {
   Divider,
   FormControl,
   FormLabel,
-  Grid,
   Heading,
   Input,
+  SimpleGrid,
   Spinner,
   Text,
 } from "@chakra-ui/react";
@@ -57,7 +57,7 @@ const Home: NextPage = () => {
             placeholder="Repository name"
             name="repository-name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => setName(e.target.value.trim())}
           />
 
           <Input
@@ -65,14 +65,14 @@ const Home: NextPage = () => {
             name="repository-owner"
             placeholder="Repository owner"
             value={owner}
-            onChange={(e) => setOwner(e.target.value)}
+            onChange={(e) => setOwner(e.target.value.trim())}
           />
           <Button id="load-repositories" onClick={handleLoad}>
             {loading ? <Spinner /> : "Search"}
           </Button>
         </FormControl>
         {error && <p>Error while fetching ...</p>}
-        <Grid templateColumns="repeat(3,1fr)" gap={6}>
+        <SimpleGrid minChildWidth="250px" spacing="40px">
           {repositories.map((repository: any) => (
             <Box
               key={repository.name}
@@ -82,19 +82,27 @@ const Home: NextPage = () => {
               overflow="hidden"
               padding="1rem"
               margin="1rem"
+              _hover={{
+                textDecoration: "none",
+                borderColor: "#ddd",
+              }}
             >
-              <Heading size="md">{repository?.name}</Heading>
-              <Divider />
-              <Text>Owner: {repository?.owner.login}</Text>
-              <Text>Issues: {repository?.issues.totalCount}</Text>
+              <Heading size="md" p="0.25rem">
+                {repository?.name}
+              </Heading>
+              <Divider my="0.5rem" />
+              <Text my="0.5rem">Owner: {repository?.owner.login}</Text>
+              <Text my="0.5rem">Issues: {repository?.issues.totalCount}</Text>
               <Link
                 href={`/repository?name=${repository?.name}&owner=${repository?.owner.login}`}
               >
-                <Button name="show-more">Show more</Button>
+                <Button width="100%" name="show-more">
+                  Show more
+                </Button>
               </Link>
             </Box>
           ))}
-        </Grid>
+        </SimpleGrid>
       </Box>
     </>
   );
