@@ -8,6 +8,7 @@ import {
   Input,
   SimpleGrid,
   Spinner,
+  Stack,
   Text,
 } from "@chakra-ui/react";
 import type { NextPage } from "next";
@@ -16,6 +17,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { RepositoryQuery, useRepositoryLazyQuery } from "../generated/graphql";
 import { loadFromLocalStorage, saveToLocalStorage } from "@utils";
+import { Search2Icon } from "@chakra-ui/icons";
 
 const Home: NextPage = () => {
   const [name, setName] = useState<string>("react");
@@ -52,30 +54,33 @@ const Home: NextPage = () => {
           <FormLabel>
             Enter the repository name and owner you want to search for
           </FormLabel>
-          <Input
-            type="text"
-            placeholder="Repository name"
-            name="repository-name"
-            value={name}
-            onChange={(e) => setName(e.target.value.trim())}
-          />
+          <Stack direction={["column", "row"]}>
+            <Input
+              type="text"
+              placeholder="Repository name"
+              name="repository-name"
+              value={name}
+              onChange={(e) => setName(e.target.value.trim())}
+            />
 
-          <Input
-            type="text"
-            name="repository-owner"
-            placeholder="Repository owner"
-            value={owner}
-            onChange={(e) => setOwner(e.target.value.trim())}
-          />
-          <Button id="load-repositories" onClick={handleLoad}>
-            {loading ? <Spinner /> : "Search"}
-          </Button>
+            <Input
+              type="text"
+              name="repository-owner"
+              placeholder="Repository owner"
+              value={owner}
+              onChange={(e) => setOwner(e.target.value.trim())}
+            />
+            <Button id="load-repositories" onClick={handleLoad}>
+              {loading ? <Spinner /> : <Search2Icon />}
+            </Button>
+          </Stack>
         </FormControl>
         {error && <p>Error while fetching ...</p>}
         <SimpleGrid minChildWidth="250px" spacing="40px">
           {repositories.map((repository: any) => (
             <Box
               key={repository.name}
+              shadow="md"
               maxW="sm"
               borderWidth="1px"
               borderRadius="lg"
@@ -85,6 +90,7 @@ const Home: NextPage = () => {
               _hover={{
                 textDecoration: "none",
                 borderColor: "#ddd",
+                shadow: "lg",
               }}
             >
               <Heading size="md" p="0.25rem">
