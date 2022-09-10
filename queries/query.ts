@@ -59,6 +59,27 @@ export const QUERY_ISSUES = gql`
   }
 `;
 
+export const QUERY_ISSUE = gql`
+  query Issue($name: String!, $owner: String!, $number: Int!) {
+    repository(name: $name, owner: $owner) {
+      id
+      __typename
+      issue(number: $number) {
+        id
+        __typename
+        state
+        body
+        id
+        title
+        number
+        author {
+          login
+        }
+      }
+    }
+  }
+`;
+
 export const QUERY_COMMENTS = gql`
   query Comments(
     $name: String!
@@ -73,14 +94,8 @@ export const QUERY_COMMENTS = gql`
       id
       __typename
       issue(number: $number) {
-        state
-        body
         id
-        title
-        number
-        author {
-          login
-        }
+        __typename
         comments(last: $last, first: $first, before: $before, after: $after) {
           totalCount
           pageInfo {
@@ -90,6 +105,7 @@ export const QUERY_COMMENTS = gql`
             startCursor
           }
           nodes {
+            __typename
             author {
               login
             }

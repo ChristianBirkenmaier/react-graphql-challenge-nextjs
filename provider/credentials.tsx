@@ -126,7 +126,7 @@ export function CredentialsProvider({
           <>{children}</>
         </ApolloProvider>
       )}
-      <Button onClick={clearCookie} position="fixed" bottom="10px" left="10px">
+      <Button onClick={clearCookie} position="fixed" bottom="10px" right="10px">
         Clear cookie
       </Button>
     </Grid>

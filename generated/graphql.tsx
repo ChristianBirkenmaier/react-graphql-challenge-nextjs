@@ -16891,7 +16891,7 @@ export type Query = {
   repositoryOwner?: Maybe<RepositoryOwner>;
   /** Lookup resource by a URL. */
   resource?: Maybe<UniformResourceLocatable>;
-  /** Perform a search across resources. */
+  /** Perform a search across resources, returning a maximum of 1,000 results. */
   search: SearchResultItemConnection;
   /** GitHub Security Advisories */
   securityAdvisories: SecurityAdvisoryConnection;
@@ -20794,26 +20794,26 @@ export enum SavedReplyOrderField {
 /** The results of a search. */
 export type SearchResultItem = App | Discussion | Issue | MarketplaceListing | Organization | PullRequest | Repository | User;
 
-/** A list of results that matched against a search query. */
+/** A list of results that matched against a search query. Regardless of the number of matches, a maximum of 1,000 results will be available across all types, potentially split across many pages. */
 export type SearchResultItemConnection = {
   __typename?: 'SearchResultItemConnection';
-  /** The number of pieces of code that matched the search query. */
+  /** The total number of pieces of code that matched the search query. Regardless of the total number of matches, a maximum of 1,000 results will be available across all types. */
   codeCount: Scalars['Int'];
-  /** The number of discussions that matched the search query. */
+  /** The total number of discussions that matched the search query. Regardless of the total number of matches, a maximum of 1,000 results will be available across all types. */
   discussionCount: Scalars['Int'];
   /** A list of edges. */
   edges?: Maybe<Array<Maybe<SearchResultItemEdge>>>;
-  /** The number of issues that matched the search query. */
+  /** The total number of issues that matched the search query. Regardless of the total number of matches, a maximum of 1,000 results will be available across all types. */
   issueCount: Scalars['Int'];
   /** A list of nodes. */
   nodes?: Maybe<Array<Maybe<SearchResultItem>>>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
-  /** The number of repositories that matched the search query. */
+  /** The total number of repositories that matched the search query. Regardless of the total number of matches, a maximum of 1,000 results will be available across all types. */
   repositoryCount: Scalars['Int'];
-  /** The number of users that matched the search query. */
+  /** The total number of users that matched the search query. Regardless of the total number of matches, a maximum of 1,000 results will be available across all types. */
   userCount: Scalars['Int'];
-  /** The number of wiki pages that matched the search query. */
+  /** The total number of wiki pages that matched the search query. Regardless of the total number of matches, a maximum of 1,000 results will be available across all types. */
   wikiCount: Scalars['Int'];
 };
 
@@ -25920,6 +25920,15 @@ export type IssuesQueryVariables = Exact<{
 
 export type IssuesQuery = { __typename?: 'Query', repository?: { __typename: 'Repository', id: string, issues: { __typename?: 'IssueConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename?: 'Issue', state: IssueState, body: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', totalCount: number } } | null> | null } } | null };
 
+export type IssueQueryVariables = Exact<{
+  name: Scalars['String'];
+  owner: Scalars['String'];
+  number: Scalars['Int'];
+}>;
+
+
+export type IssueQuery = { __typename?: 'Query', repository?: { __typename: 'Repository', id: string, issue?: { __typename: 'Issue', id: string, state: IssueState, body: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null } | null };
+
 export type CommentsQueryVariables = Exact<{
   name: Scalars['String'];
   owner: Scalars['String'];
@@ -25931,7 +25940,7 @@ export type CommentsQueryVariables = Exact<{
 }>;
 
 
-export type CommentsQuery = { __typename?: 'Query', repository?: { __typename: 'Repository', id: string, issue?: { __typename?: 'Issue', state: IssueState, body: string, id: string, title: string, number: number, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null, comments: { __typename?: 'IssueCommentConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename?: 'IssueComment', id: string, body: string, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null> | null } } | null } | null };
+export type CommentsQuery = { __typename?: 'Query', repository?: { __typename: 'Repository', id: string, issue?: { __typename: 'Issue', id: string, comments: { __typename?: 'IssueCommentConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename: 'IssueComment', id: string, body: string, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null> | null } } | null } | null };
 
 
 export const RepositoryDocument = gql`
@@ -26047,12 +26056,14 @@ export function useIssuesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Iss
 export type IssuesQueryHookResult = ReturnType<typeof useIssuesQuery>;
 export type IssuesLazyQueryHookResult = ReturnType<typeof useIssuesLazyQuery>;
 export type IssuesQueryResult = Apollo.QueryResult<IssuesQuery, IssuesQueryVariables>;
-export const CommentsDocument = gql`
-    query Comments($name: String!, $owner: String!, $first: Int, $number: Int!, $last: Int, $before: String, $after: String) {
+export const IssueDocument = gql`
+    query Issue($name: String!, $owner: String!, $number: Int!) {
   repository(name: $name, owner: $owner) {
     id
     __typename
     issue(number: $number) {
+      id
+      __typename
       state
       body
       id
@@ -26061,6 +26072,48 @@ export const CommentsDocument = gql`
       author {
         login
       }
+    }
+  }
+}
+    `;
+
+/**
+ * __useIssueQuery__
+ *
+ * To run a query within a React component, call `useIssueQuery` and pass it any options that fit your needs.
+ * When your component renders, `useIssueQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useIssueQuery({
+ *   variables: {
+ *      name: // value for 'name'
+ *      owner: // value for 'owner'
+ *      number: // value for 'number'
+ *   },
+ * });
+ */
+export function useIssueQuery(baseOptions: Apollo.QueryHookOptions<IssueQuery, IssueQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<IssueQuery, IssueQueryVariables>(IssueDocument, options);
+      }
+export function useIssueLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<IssueQuery, IssueQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<IssueQuery, IssueQueryVariables>(IssueDocument, options);
+        }
+export type IssueQueryHookResult = ReturnType<typeof useIssueQuery>;
+export type IssueLazyQueryHookResult = ReturnType<typeof useIssueLazyQuery>;
+export type IssueQueryResult = Apollo.QueryResult<IssueQuery, IssueQueryVariables>;
+export const CommentsDocument = gql`
+    query Comments($name: String!, $owner: String!, $first: Int, $number: Int!, $last: Int, $before: String, $after: String) {
+  repository(name: $name, owner: $owner) {
+    id
+    __typename
+    issue(number: $number) {
+      id
+      __typename
       comments(last: $last, first: $first, before: $before, after: $after) {
         totalCount
         pageInfo {
@@ -26070,6 +26123,7 @@ export const CommentsDocument = gql`
           startCursor
         }
         nodes {
+          __typename
           author {
             login
           }

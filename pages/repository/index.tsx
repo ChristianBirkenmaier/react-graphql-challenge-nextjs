@@ -21,6 +21,7 @@ import { useMemo, useState } from "react";
 import { FetchErrorAlert } from "@components/ui/CustomAlert";
 import { useIssuesQuery } from "@generated/graphql";
 import { Pagination } from "@types";
+import { PaginationFooter } from "@components/pagination";
 import { mapStateToQuery } from "@utils";
 import { NUMBER_OF_ITEMS_TO_FETCH } from "@config/constants";
 
@@ -62,23 +63,6 @@ const RepositoryPage: NextPage = () => {
         .reverse(),
     [search, nodes]
   );
-
-  const fetchBefore = () => {
-    setPagination({
-      first: undefined,
-      last: NUMBER_OF_ITEMS_TO_FETCH,
-      after: undefined,
-      before: pageInfo?.startCursor,
-    });
-  };
-  const fetchAfter = () => {
-    setPagination({
-      first: NUMBER_OF_ITEMS_TO_FETCH,
-      last: undefined,
-      after: pageInfo?.endCursor,
-      before: undefined,
-    });
-  };
 
   return (
     <Grid>
@@ -140,12 +124,12 @@ const RepositoryPage: NextPage = () => {
               );
             })}
           </Box>
-          <Button disabled={!pageInfo?.hasNextPage} onClick={fetchAfter}>
-            Previous Page
-          </Button>
-          <Button disabled={!pageInfo?.hasPreviousPage} onClick={fetchBefore}>
-            Next Page
-          </Button>
+          <PaginationFooter
+            pageInfo={pageInfo}
+            setPagination={setPagination}
+            totalCount={totalCount}
+            loading={loading}
+          />
         </Box>
       )}
     </Grid>
