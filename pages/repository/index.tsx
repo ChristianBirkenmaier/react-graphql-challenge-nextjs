@@ -1,30 +1,27 @@
-import { InfoIcon } from "@chakra-ui/icons";
 import {
   Box,
-  Button,
   Divider,
-  Flex,
   FormControl,
   Grid,
   Heading,
   Input,
   Radio,
   RadioGroup,
-  SkeletonText,
   Stack,
   Text,
 } from "@chakra-ui/react";
 import { NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
-import { FetchErrorAlert } from "@components/ui/CustomAlert";
-import { IssueState, useIssuesQuery } from "@generated/graphql";
+import { useState } from "react";
+import { FetchErrorAlert } from "@components/customalert";
+import { useIssuesQuery } from "@generated/graphql";
 import { Pagination } from "@types";
 import { PaginationFooter } from "@components/pagination";
 import { mapStateToQuery } from "@utils";
 import { NUMBER_OF_ITEMS_TO_FETCH } from "@config/constants";
+import { CustomSkeletonText } from "@components/utils";
+import { Issue } from "@components/issues";
 
 const RepositoryPage: NextPage = () => {
   const [search, setSearch] = useState<string>("");
@@ -48,22 +45,6 @@ const RepositoryPage: NextPage = () => {
   });
 
   const { totalCount, pageInfo, nodes } = data?.repository?.issues || {};
-
-  const memoIssues = useMemo(
-    () =>
-      nodes
-        ?.filter((node) => {
-          if (!node) return false;
-          if (!search) return true;
-          if (
-            node.body.toLowerCase().includes(search.toLowerCase()) ||
-            node.title.toLowerCase().includes(search.toLowerCase())
-          )
-            return true;
-        })
-        .reverse(),
-    [search, nodes]
-  );
 
   return (
     <Grid>
@@ -99,54 +80,26 @@ const RepositoryPage: NextPage = () => {
       {error && <FetchErrorAlert />}
       <Box mx="1rem">
         {loading ? (
-          <Stack>
-            <SkeletonText mt="5" noOfLines={5} spacing="5" />
-            <SkeletonText mt="5" noOfLines={5} spacing="5" />
-            <SkeletonText mt="5" noOfLines={5} spacing="5" />
-            <SkeletonText mt="5" noOfLines={5} spacing="5" />
-            <SkeletonText mt="5" noOfLines={5} spacing="5" />
-          </Stack>
+          <CustomSkeletonText number={5} />
         ) : (
           <>
             <Text id="issue-count">#Issues: {totalCount}</Text>
             <Box id="issue-list">
-              {memoIssues?.map((node) => {
+              {nodes?.map((node) => {
                 if (!node) return null;
                 const { comments, title, number, author, body, state } = node;
                 return (
-                  <Box
+                  <Issue
                     key={number}
-                    my="1rem"
-                    borderWidth="1px"
-                    borderRadius="5px"
-                    p="0.5rem"
-                  >
-                    <Flex>
-                      <Text fontWeight="bold">{title}</Text>
-                      <Text>{`(${comments.totalCount})`}</Text>
-                    </Flex>
-                    <Text my="0.5rem">
-                      <InfoIcon
-                        mr="0.5rem"
-                        color={
-                          state === IssueState.Open ? "green" : "rebeccapurple"
-                        }
-                      />{" "}
-                      By {author?.login}
-                    </Text>
-
-                    <Divider mb="0.5rem" />
-                    <Text>
-                      {getBody({ text: body, maxLength: 200 })}{" "}
-                      <Link
-                        href={`/issue/${number}?name=${name}&owner=${owner}`}
-                      >
-                        <Button ml="0.5rem" size="xs" name="show-more">
-                          Show more
-                        </Button>
-                      </Link>
-                    </Text>
-                  </Box>
+                    authorLogin={author?.login}
+                    title={title}
+                    body={body}
+                    name={name}
+                    number={number}
+                    owner={owner}
+                    state={state}
+                    totalCount={comments.totalCount}
+                  />
                 );
               })}
             </Box>
@@ -162,10 +115,5 @@ const RepositoryPage: NextPage = () => {
     </Grid>
   );
 };
-
-function getBody({ text, maxLength }: { text: string; maxLength: number }) {
-  if (text.length <= maxLength) return text;
-  return `${text.substring(0, maxLength)}...`;
-}
 
 export default RepositoryPage;
