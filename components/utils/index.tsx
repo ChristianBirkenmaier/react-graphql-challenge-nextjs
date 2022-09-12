@@ -9,7 +9,6 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { IssueState } from "@generated/graphql";
-import { title } from "process";
 
 export function TotalCountTag({
   totalCount,

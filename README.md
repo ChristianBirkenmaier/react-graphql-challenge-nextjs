@@ -7,6 +7,8 @@ export GITHUB_ACCESS_TOKEN=<your token>
 
 In order to run tests, rename `cypress.env.json.template` to `cypress.env.json` and add your valid githubb access token.
 
+The application is deployed at [Vercel](https://react-graphql-challenge-nextjs.vercel.app/). To use it, provide a valid github access token with repo access.
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
