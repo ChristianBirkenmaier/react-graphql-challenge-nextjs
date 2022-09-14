@@ -1,4 +1,3 @@
-import { CloseIcon } from "@chakra-ui/icons";
 import {
   createHttpLink,
   ApolloClient,
@@ -6,26 +5,9 @@ import {
   ApolloProvider,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
-import {
-  Grid,
-  FormControl,
-  Input,
-  Button,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  useDisclosure,
-  Text,
-  FormHelperText,
-  FormErrorMessage,
-} from "@chakra-ui/react";
+import { Grid, Heading } from "@chakra-ui/react";
 import { GRAPHQL_URI } from "@config/constants";
-import { verifyToken } from "@utils";
-import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 const createClient = (token: string) => {
   const httpLink = createHttpLink({
@@ -51,91 +33,19 @@ export function CredentialsProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
-  const { onClose } = useDisclosure();
-  const [isError, setIsError] = useState(false);
-  const [token, setToken] = useState<string>("");
-
-  useEffect(() => {
-    const token = localStorage.getItem("github_token");
-    if (!token) return;
-    setIsAuthorized(true);
-    setToken(token);
-  }, []);
-
-  async function handleTokenSubmit() {
-    const isValid = await verifyToken(token);
-    if (isValid) {
-      setIsError(false);
-      localStorage.setItem("github_token", token);
-      setIsAuthorized(true);
-    } else {
-      setIsError(true);
-    }
-  }
-
-  function clearCookie() {
-    setToken("");
-    setIsAuthorized(false);
-    localStorage.removeItem("github_token");
-  }
+  const { data: session } = useSession();
 
   return (
     <Grid>
-      <Modal isOpen={!isAuthorized} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Github Access Token</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text mb="1rem">
-              Please enter a valid github access token to proceed to the
-              application.
-            </Text>
-            <FormControl isInvalid={isError}>
-              <Input
-                type="text"
-                name="token-input"
-                placeholder="Enter github token"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-              />
-              {!isError ? (
-                <FormHelperText>
-                  The token needs repository access rights.
-                </FormHelperText>
-              ) : (
-                <FormErrorMessage>Invalid access token.</FormErrorMessage>
-              )}
-            </FormControl>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              name="token-submit"
-              disabled={!token}
-              onClick={handleTokenSubmit}
-            >
-              Submit
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-      {isAuthorized && (
-        <ApolloProvider client={createClient(token!)}>
+      {session?.accessToken ? (
+        <ApolloProvider client={createClient(session.accessToken)}>
           <>{children}</>
         </ApolloProvider>
+      ) : (
+        <Heading size="lg">
+          You need to be logged in to use this application.
+        </Heading>
       )}
-      <Button
-        bg="red.100"
-        _hover={{ bg: "red" }}
-        onClick={clearCookie}
-        position="fixed"
-        top="10px"
-        right="10px"
-      >
-        <CloseIcon />
-      </Button>
     </Grid>
   );
 }

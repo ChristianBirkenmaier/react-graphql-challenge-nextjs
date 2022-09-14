@@ -1,3 +1,4 @@
+import { SessionProvider } from "next-auth/react";
 import type { AppProps } from "next/app";
 import { ChakraProvider } from "@chakra-ui/react";
 import theme from "@styles/theme";
@@ -7,10 +8,12 @@ import { Header } from "@components/header";
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ChakraProvider theme={theme}>
-      <CredentialsProvider>
+      <SessionProvider session={pageProps.session}>
         <Header />
-        <Component {...pageProps} />
-      </CredentialsProvider>
+        <CredentialsProvider>
+          <Component {...pageProps} />
+        </CredentialsProvider>
+      </SessionProvider>
     </ChakraProvider>
   );
 }
