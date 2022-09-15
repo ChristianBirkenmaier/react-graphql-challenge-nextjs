@@ -1618,6 +1618,47 @@ export type CheckRunOutputImage = {
   imageUrl: Scalars['URI'];
 };
 
+/** The possible states of a check run in a status rollup. */
+export enum CheckRunState {
+  /** The check run requires action. */
+  ActionRequired = 'ACTION_REQUIRED',
+  /** The check run has been cancelled. */
+  Cancelled = 'CANCELLED',
+  /** The check run has been completed. */
+  Completed = 'COMPLETED',
+  /** The check run has failed. */
+  Failure = 'FAILURE',
+  /** The check run is in progress. */
+  InProgress = 'IN_PROGRESS',
+  /** The check run was neutral. */
+  Neutral = 'NEUTRAL',
+  /** The check run is in pending state. */
+  Pending = 'PENDING',
+  /** The check run has been queued. */
+  Queued = 'QUEUED',
+  /** The check run was skipped. */
+  Skipped = 'SKIPPED',
+  /** The check run was marked stale by GitHub. Only GitHub can use this conclusion. */
+  Stale = 'STALE',
+  /** The check run has failed at startup. */
+  StartupFailure = 'STARTUP_FAILURE',
+  /** The check run has succeeded. */
+  Success = 'SUCCESS',
+  /** The check run has timed out. */
+  TimedOut = 'TIMED_OUT',
+  /** The check run is in waiting state. */
+  Waiting = 'WAITING'
+}
+
+/** Represents a count of the state of a check run. */
+export type CheckRunStateCount = {
+  __typename?: 'CheckRunStateCount';
+  /** The number of check runs with this state. */
+  count: Scalars['Int'];
+  /** The state of a check run. */
+  state: CheckRunState;
+};
+
 /** The possible types of check runs. */
 export enum CheckRunType {
   /** Every check run available. */
@@ -16582,6 +16623,8 @@ export type PullRequestThread = Node & {
   __typename?: 'PullRequestThread';
   /** A list of pull request comments associated with the thread. */
   comments: PullRequestReviewCommentConnection;
+  /** The side of the diff on which this thread was placed. */
+  diffSide: DiffSide;
   id: Scalars['ID'];
   /** Whether or not the thread has been collapsed (resolved) */
   isCollapsed: Scalars['Boolean'];
@@ -16589,12 +16632,18 @@ export type PullRequestThread = Node & {
   isOutdated: Scalars['Boolean'];
   /** Whether this thread has been resolved */
   isResolved: Scalars['Boolean'];
+  /** The line in the file to which this thread refers */
+  line?: Maybe<Scalars['Int']>;
   /** Identifies the pull request associated with this thread. */
   pullRequest: PullRequest;
   /** Identifies the repository associated with this thread. */
   repository: Repository;
   /** The user who resolved this thread */
   resolvedBy?: Maybe<User>;
+  /** The side of the diff that the first line of the thread starts on (multi-line only) */
+  startDiffSide?: Maybe<DiffSide>;
+  /** The line of the first file diff in the thread. */
+  startLine?: Maybe<Scalars['Int']>;
   /** Indicates whether the current viewer can reply to this thread. */
   viewerCanReply: Scalars['Boolean'];
   /** Whether or not the viewer can resolve this thread */
@@ -21984,12 +22033,20 @@ export type StatusCheckRollupContext = CheckRun | StatusContext;
 /** The connection type for StatusCheckRollupContext. */
 export type StatusCheckRollupContextConnection = {
   __typename?: 'StatusCheckRollupContextConnection';
+  /** The number of check runs in this rollup. */
+  checkRunCount: Scalars['Int'];
+  /** Counts of check runs by state. */
+  checkRunCountsByState?: Maybe<Array<CheckRunStateCount>>;
   /** A list of edges. */
   edges?: Maybe<Array<Maybe<StatusCheckRollupContextEdge>>>;
   /** A list of nodes. */
   nodes?: Maybe<Array<Maybe<StatusCheckRollupContext>>>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
+  /** The number of status contexts in this rollup. */
+  statusContextCount: Scalars['Int'];
+  /** Counts of status contexts by state. */
+  statusContextCountsByState?: Maybe<Array<StatusContextStateCount>>;
   /** Identifies the total count of items in the connection. */
   totalCount: Scalars['Int'];
 };
@@ -22038,6 +22095,15 @@ export type StatusContextAvatarUrlArgs = {
 export type StatusContextIsRequiredArgs = {
   pullRequestId?: InputMaybe<Scalars['ID']>;
   pullRequestNumber?: InputMaybe<Scalars['Int']>;
+};
+
+/** Represents a count of the state of a status context. */
+export type StatusContextStateCount = {
+  __typename?: 'StatusContextStateCount';
+  /** The number of statuses with this state. */
+  count: Scalars['Int'];
+  /** The state of a status context. */
+  state: StatusState;
 };
 
 /** The possible commit status states. */
@@ -25942,6 +26008,14 @@ export type CommentsQueryVariables = Exact<{
 
 export type CommentsQuery = { __typename?: 'Query', repository?: { __typename: 'Repository', id: string, issue?: { __typename: 'Issue', id: string, comments: { __typename?: 'IssueCommentConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null }, nodes?: Array<{ __typename: 'IssueComment', id: string, body: string, author?: { __typename?: 'Bot', login: string } | { __typename?: 'EnterpriseUserAccount', login: string } | { __typename?: 'Mannequin', login: string } | { __typename?: 'Organization', login: string } | { __typename?: 'User', login: string } | null } | null> | null } } | null } | null };
 
+export type SearchQueryVariables = Exact<{
+  query: Scalars['String'];
+  last?: InputMaybe<Scalars['Int']>;
+}>;
+
+
+export type SearchQuery = { __typename?: 'Query', search: { __typename?: 'SearchResultItemConnection', issueCount: number, edges?: Array<{ __typename?: 'SearchResultItemEdge', node?: { __typename?: 'App' } | { __typename?: 'Discussion' } | { __typename?: 'Issue', title: string, url: any, createdAt: any, number: number, state: IssueState } | { __typename?: 'MarketplaceListing' } | { __typename?: 'Organization' } | { __typename?: 'PullRequest' } | { __typename?: 'Repository' } | { __typename?: 'User' } | null } | null> | null } };
+
 
 export const RepositoryDocument = gql`
     query Repository($name: String!, $owner: String!) {
@@ -26169,3 +26243,50 @@ export function useCommentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<C
 export type CommentsQueryHookResult = ReturnType<typeof useCommentsQuery>;
 export type CommentsLazyQueryHookResult = ReturnType<typeof useCommentsLazyQuery>;
 export type CommentsQueryResult = Apollo.QueryResult<CommentsQuery, CommentsQueryVariables>;
+export const SearchDocument = gql`
+    query Search($query: String!, $last: Int) {
+  search(query: $query, type: ISSUE, last: $last) {
+    issueCount
+    edges {
+      node {
+        ... on Issue {
+          title
+          url
+          createdAt
+          number
+          state
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchQuery__
+ *
+ * To run a query within a React component, call `useSearchQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *      last: // value for 'last'
+ *   },
+ * });
+ */
+export function useSearchQuery(baseOptions: Apollo.QueryHookOptions<SearchQuery, SearchQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchQuery, SearchQueryVariables>(SearchDocument, options);
+      }
+export function useSearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchQuery, SearchQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchQuery, SearchQueryVariables>(SearchDocument, options);
+        }
+export type SearchQueryHookResult = ReturnType<typeof useSearchQuery>;
+export type SearchLazyQueryHookResult = ReturnType<typeof useSearchLazyQuery>;
+export type SearchQueryResult = Apollo.QueryResult<SearchQuery, SearchQueryVariables>;

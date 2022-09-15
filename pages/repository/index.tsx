@@ -13,9 +13,9 @@ import {
 import { NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FetchErrorAlert } from "@components/customalert";
-import { useIssuesQuery } from "@generated/graphql";
+import { useIssuesQuery, useSearchLazyQuery } from "@generated/graphql";
 import { Pagination } from "@types";
 import { PaginationFooter } from "@components/pagination";
 import { mapStateToQuery } from "@utils";
@@ -43,6 +43,24 @@ const RepositoryPage: NextPage = () => {
       ...pagination,
     },
   });
+
+  const [
+    loadSearch,
+    { data: searchData, loading: searchLoading, error: searchError },
+  ] = useSearchLazyQuery({
+    variables: {
+      query: `repo:facebook/react is:issue is:open ${
+        search && `in:title ${search} in:body ${search}`
+      }`,
+      last: 20,
+    },
+  });
+
+  useEffect(() => {
+    loadSearch();
+  }, [search]);
+
+  console.log({ searchData, searchLoading, searchError });
 
   const { totalCount, pageInfo, nodes } = data?.repository?.issues || {};
 
@@ -85,23 +103,40 @@ const RepositoryPage: NextPage = () => {
           <>
             <Text id="issue-count">#Issues: {totalCount}</Text>
             <Box id="issue-list">
-              {nodes?.map((node) => {
-                if (!node) return null;
-                const { comments, title, number, author, body, state } = node;
-                return (
-                  <Issue
-                    key={number}
-                    authorLogin={author?.login}
-                    title={title}
-                    body={body}
-                    name={name}
-                    number={number}
-                    owner={owner}
-                    state={state}
-                    totalCount={comments.totalCount}
-                  />
-                );
-              })}
+              {searchData
+                ? searchData.search.edges?.map((edge) => {
+                    return (
+                      <Issue
+                        key={edge?.node.number}
+                        authorLogin={""}
+                        title={edge?.node.title}
+                        body={""}
+                        name={name}
+                        number={edge?.node.number}
+                        owner={owner}
+                        state={edge?.node.state}
+                        totalCount={0}
+                      />
+                    );
+                  })
+                : nodes?.map((node) => {
+                    if (!node) return null;
+                    const { comments, title, number, author, body, state } =
+                      node;
+                    return (
+                      <Issue
+                        key={number}
+                        authorLogin={author?.login}
+                        title={title}
+                        body={body}
+                        name={name}
+                        number={number}
+                        owner={owner}
+                        state={state}
+                        totalCount={comments.totalCount}
+                      />
+                    );
+                  })}
             </Box>
           </>
         )}

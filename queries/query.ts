@@ -117,3 +117,22 @@ export const QUERY_COMMENTS = gql`
     }
   }
 `;
+
+export const SEARCH_ISSUES_QUERY = gql`
+  query Search($query: String!, $last: Int) {
+    search(query: $query, type: ISSUE, last: $last) {
+      issueCount
+      edges {
+        node {
+          ... on Issue {
+            title
+            url
+            createdAt
+            number
+            state
+          }
+        }
+      }
+    }
+  }
+`;
